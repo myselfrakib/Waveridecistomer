@@ -1,0 +1,208 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WaveRide Admin Panel</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #4e54c8, #8f94fb);
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header {
+      background: #fff;
+      padding: 10px 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    nav button {
+      margin: 0 10px;
+      padding: 10px 20px;
+      background-color: #6a11cb;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .container {
+      padding: 20px;
+    }
+    .tab-content {
+      display: none;
+    }
+    .active {
+      display: block;
+    }
+    .item {
+      background: #fff;
+      margin-bottom: 10px;
+      padding: 15px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    input, select {
+      padding: 8px;
+      margin: 5px 0;
+      width: 100%;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button.action {
+      background-color: #e74c3c;
+      color: white;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>WaveRide Admin Panel</h1>
+    <nav>
+      <button onclick="switchTab('users')">Users</button>
+      <button onclick="switchTab('vehicles')">Vehicles</button>
+      <button onclick="switchTab('bookings')">Bookings</button>
+    </nav>
+  </header>
+  <div class="container">
+    <div id="users" class="tab-content active">
+      <h2>Users</h2>
+      <div id="userList"></div>
+    </div>
+
+    <div id="vehicles" class="tab-content">
+      <h2>Vehicles</h2>
+      <form onsubmit="addVehicle(event)">
+        <input type="text" id="vehicleName" placeholder="Vehicle Name" required />
+        <input type="text" id="vehicleCategory" placeholder="Category" required />
+        <button type="submit">Add Vehicle</button>
+      </form>
+      <div id="vehicleList"></div>
+    </div>
+
+    <div id="bookings" class="tab-content">
+      <h2>Bookings</h2>
+      <input type="text" id="searchBooking" placeholder="Search by user or location" oninput="filterBookings()" />
+      <div id="bookingList"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getDatabase, ref, onValue, remove, push, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
+      authDomain: "waveride-bike-rental-service.firebaseapp.com",
+      projectId: "waveride-bike-rental-service",
+      storageBucket: "waveride-bike-rental-service.appspot.com",
+      messagingSenderId: "341920732961",
+      appId: "1:341920732961:web:3967e19131f8984f0f1060",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    const userList = document.getElementById("userList");
+    const vehicleList = document.getElementById("vehicleList");
+    const bookingList = document.getElementById("bookingList");
+
+    const usersRef = ref(db, 'users/');
+    const vehiclesRef = ref(db, 'vehicles/');
+    const bookingsRef = ref(db, 'bookings/');
+
+    onValue(usersRef, (snapshot) => {
+      userList.innerHTML = '';
+      snapshot.forEach(child => {
+        const user = child.val();
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = \`
+          <strong>\${user.name || 'No Name'}:</strong> \${user.phone}<br/>
+          <button class="action" onclick="deleteData('users/', '\${child.key}')">Delete</button>
+        \`;
+        userList.appendChild(div);
+      });
+    });
+
+    onValue(vehiclesRef, (snapshot) => {
+      vehicleList.innerHTML = '';
+      snapshot.forEach(child => {
+        const vehicle = child.val();
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = \`
+          <strong>\${vehicle.name}</strong> - \${vehicle.category}<br/>
+          <button class="action" onclick="deleteData('vehicles/', '\${child.key}')">Delete</button>
+        \`;
+        vehicleList.appendChild(div);
+      });
+    });
+
+    onValue(bookingsRef, (snapshot) => {
+      window.allBookings = [];
+      bookingList.innerHTML = '';
+      snapshot.forEach(child => {
+        const booking = child.val();
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = \`
+          <strong>\${booking.name || 'N/A'}</strong><br/>
+          From: \${booking.pickup} at \${booking.pickupTime}<br/>
+          To: \${booking.drop} | Duration: \${booking.duration}<br/>
+          Fare: ₹\${booking.fare}<br/>
+        \`;
+        bookingList.appendChild(div);
+        window.allBookings.push({key: child.key, ...booking});
+      });
+    });
+
+    window.deleteData = function(path, key) {
+      remove(ref(db, path + key));
+    };
+
+    window.addVehicle = function(e) {
+      e.preventDefault();
+      const name = document.getElementById("vehicleName").value;
+      const category = document.getElementById("vehicleCategory").value;
+      const newRef = push(ref(db, 'vehicles/'));
+      set(newRef, { name, category });
+      e.target.reset();
+    };
+
+    window.filterBookings = function () {
+      const q = document.getElementById("searchBooking").value.toLowerCase();
+      bookingList.innerHTML = '';
+      window.allBookings.forEach(b => {
+        if ((b.name || '').toLowerCase().includes(q) || (b.pickup || '').toLowerCase().includes(q)) {
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerHTML = \`
+            <strong>\${b.name}</strong><br/>
+            From: \${b.pickup} at \${b.pickupTime}<br/>
+            To: \${b.drop} | Duration: \${b.duration}<br/>
+            Fare: ₹\${b.fare}<br/>
+          \`;
+          bookingList.appendChild(div);
+        }
+      });
+    };
+  </script>
+</body>
+</html>
