@@ -58,7 +58,7 @@
   <input type="password" id="password" placeholder="Password" required />
   <input type="text" id="phone" placeholder="Phone (optional)" />
   <button onclick="signUp()">Sign Up</button>
-  <div class="link">Already have an account? <a href="login.html">Login</a></div>
+  <div class="link">Already have an account? <a href="index.html">Login</a></div>
 </div>
 
 <script type="module">
@@ -86,7 +86,7 @@
     createUserWithEmailAndPassword(auth, email, pass)
       .then((userCredential) => {
         alert("Signup successful!");
-        window.location.href = "login.html";
+        window.location.href = "index.html";
       })
       .catch((error) => {
         alert("Error: " + error.message);
