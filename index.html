@@ -3,101 +3,127 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WaveRide - Login</title>
+  <title>Login - WaveRide</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #4facfe, #00f2fe);
+      background: linear-gradient(to right, #141e30, #243b55);
+      margin: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
+      color: #fff;
     }
-    .form-box {
-      background: white;
-      padding: 30px;
+
+    .container {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 40px;
       border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      width: 100%;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      text-align: center;
+      width: 90%;
       max-width: 400px;
     }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
     input {
       width: 100%;
       padding: 12px;
-      margin-top: 12px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      margin: 10px 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
     }
+
     button {
       width: 100%;
       padding: 12px;
-      margin-top: 16px;
-      border: none;
-      background: #007bff;
+      margin: 10px 0;
+      background: #ff5722;
       color: white;
-      font-weight: bold;
-      border-radius: 8px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
       cursor: pointer;
     }
-    .link {
-      text-align: center;
-      margin-top: 16px;
+
+    button:hover {
+      background: #e64a19;
     }
-    .link a {
-      color: #007bff;
-      text-decoration: none;
+
+    .admin-btn {
+      background: #607d8b;
+    }
+
+    .admin-btn:hover {
+      background: #455a64;
+    }
+
+    .link {
+      color: #bbb;
+      font-size: 14px;
+      margin-top: 10px;
+      display: block;
+    }
+
+    .link:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h2>WaveRide Login</h2>
+    <input type="email" placeholder="Email" id="email" />
+    <input type="password" placeholder="Password" id="password" />
+    <button onclick="loginUser()">Login</button>
 
-<div class="form-box">
-  <h2>Login</h2>
-  <input type="email" id="email" placeholder="Email" required />
-  <input type="password" id="password" placeholder="Password" required />
-  <button onclick="login()">Login</button>
-  <div class="link">
-    <a href="signup.html">Create Account</a> | <a href="forgot.html">Forgot Password?</a>
+    <a class="link" href="signup.html">Don't have an account? Sign Up</a>
+    <a class="link" href="forgotpassword.html">Forgot Password?</a>
+
+    <hr style="margin: 20px 0; border: 0.5px solid #444;">
+
+    <button class="admin-btn" onclick="location.href='adminlogin.html'">Login as Admin</button>
   </div>
-</div>
-<div style="text-align: center; margin-top: 15px;">
-  <button onclick="window.location.href='adminlogin.html'" style="background-color: #6a11cb; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
-    Admin Login
-  </button>
-</div
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Import Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
-    authDomain: "waveride-bike-rental-service.firebaseapp.com",
-    projectId: "waveride-bike-rental-service",
-    storageBucket: "waveride-bike-rental-service.firebasestorage.app",
-    messagingSenderId: "341920732961",
-    appId: "1:341920732961:web:3967e19131f8984f0f1060",
-    measurementId: "G-59M75TD99E"
-  };
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
+      authDomain: "waveride-bike-rental-service.firebaseapp.com",
+      projectId: "waveride-bike-rental-service",
+      storageBucket: "waveride-bike-rental-service.appspot.com",
+      messagingSenderId: "341920732961",
+      appId: "1:341920732961:web:3967e19131f8984f0f1060",
+      measurementId: "G-59M75TD99E"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-  window.login = function() {
-    const email = document.getElementById("email").value;
-    const pass = document.getElementById("password").value;
+    // Login logic
+    window.loginUser = async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
-    signInWithEmailAndPassword(auth, email, pass)
-      .then((userCredential) => {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
         alert("Login successful!");
-        window.location.href = "booking.html"; // Or your dashboard/home page
-      })
-      .catch((error) => {
-        alert("Error: " + error.message);
-      });
-  }
-</script>
-
+        window.location.href = "booking.html"; // or dashboard.html
+      } catch (error) {
+        alert("Login failed: " + error.message);
+      }
+    };
+  </script>
 </body>
 </html>
