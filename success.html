@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Booking Success - WaveRide</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .success-container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+    .success-container h1 {
+      color: #28a745;
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+    .success-container p {
+      font-size: 1.1em;
+      margin-bottom: 20px;
+      color: #444;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 25px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      text-decoration: none;
+      margin: 10px 5px;
+      transition: background 0.3s ease;
+    }
+    .btn:hover {
+      background-color: #0056b3;
+    }
+    @media(max-width: 480px) {
+      .success-container h1 {
+        font-size: 1.5em;
+      }
+    }
+  </style>
+  <script>
+    // Auto redirect after 5 seconds
+    setTimeout(() => {
+      window.location.href = "mybookings.html";
+    }, 5000);
+  </script>
+</head>
+<body>
+
+  <div class="success-container">
+    <h1>✅ Booking Confirmed!</h1>
+    <p>Thank you for choosing WaveRide.<br>Your ride has been successfully booked.</p>
+    <p>You will be redirected shortly...</p>
+    <a href="index.html" class="btn">Go to Home</a>
+    <a href="mybookings.html" class="btn">View My Bookings</a>
+  </div>
+
+</body>
+</html>
