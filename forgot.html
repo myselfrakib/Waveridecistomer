@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reset Password - WaveRide</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .form-box {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 16px;
+      border: none;
+      background: #007bff;
+      color: white;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .link {
+      text-align: center;
+      margin-top: 16px;
+    }
+    .link a {
+      color: #007bff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="form-box">
+  <h2>Reset Password</h2>
+  <input type="email" id="email" placeholder="Enter your email" required />
+  <button onclick="sendResetLink()">Send Reset Link</button>
+  <div class="link">
+    <a href="login.html">Back to Login</a>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+  import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
+    authDomain: "waveride-bike-rental-service.firebaseapp.com",
+    projectId: "waveride-bike-rental-service",
+    storageBucket: "waveride-bike-rental-service.firebasestorage.app",
+    messagingSenderId: "341920732961",
+    appId: "1:341920732961:web:3967e19131f8984f0f1060",
+    measurementId: "G-59M75TD99E"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  window.sendResetLink = function() {
+    const email = document.getElementById("email").value;
+
+    sendPasswordResetEmail(auth, email)
+      .then(() => {
+        alert("Password reset link sent! Check your email.");
+        window.location.href = "login.html";
+      })
+      .catch((error) => {
+        alert("Error: " + error.message);
+      });
+  }
+</script>
+
+</body>
+</html>
