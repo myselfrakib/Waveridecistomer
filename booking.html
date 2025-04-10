@@ -6,69 +6,72 @@
   <title>WaveRide - Book Your Ride</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #4facfe, #00f2fe);
       margin: 0;
-      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
       color: #333;
-    }
-    .navbar {
-      background-color: #fff;
-      padding: 15px;
-      text-align: center;
-      border-bottom: 1px solid #ddd;
-    }
-    .navbar a {
-      margin: 0 10px;
-      color: #007bff;
-      text-decoration: none;
-    }
-    .container {
-      max-width: 600px;
-      background: white;
       padding: 20px;
-      border-radius: 10px;
-      margin: 30px auto;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
+
+    .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
     h2 {
       text-align: center;
-      margin-bottom: 20px;
+      color: #007bff;
     }
+
     label {
       font-weight: bold;
       margin-top: 10px;
       display: block;
     }
-    input, select, button {
+
+    select, input, button {
       width: 100%;
       padding: 10px;
-      margin-top: 5px;
-      border-radius: 5px;
+      margin-top: 6px;
+      margin-bottom: 12px;
+      border-radius: 8px;
       border: 1px solid #ccc;
+      font-size: 1rem;
     }
+
     button {
       background: #007bff;
-      color: white;
+      color: #fff;
+      border: none;
       font-weight: bold;
-      margin-top: 20px;
       cursor: pointer;
     }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .bike-list {
+      margin-top: 20px;
+    }
+
     .bike-item {
-      background: #f5f5f5;
-      margin: 10px 0;
+      background: #f1f1f1;
       padding: 15px;
-      border-radius: 8px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      text-align: center;
     }
+
     .bike-item button {
-      background: #28a745;
+      margin-top: 10px;
     }
-    .message {
-      margin-top: 15px;
-      font-weight: bold;
-      color: red;
-    }
-    @media(max-width: 600px) {
+
+    @media (max-width: 600px) {
       .container {
         margin: 10px;
       }
@@ -77,185 +80,152 @@
 </head>
 <body>
 
-<div class="navbar">
-  <strong>WaveRide</strong>
-  <a href="index.html">Home</a>
-  <a href="mybookings.html">My Bookings</a>
-  <a href="profile.html">Profile</a>
-</div>
-
 <div class="container">
   <h2>Book Your Ride</h2>
+
   <form id="bookingForm">
-    <label for="category">Vehicle Category</label>
+    <label for="category">Select Category</label>
     <select id="category" required>
-      <option value="">-- Select Category --</option>
+      <option value="">-- Choose --</option>
       <option value="scooter">Scooter</option>
-      <option value="under150cc">Bikes under 150cc</option>
+      <option value="under150cc">Bikes Under 150cc</option>
       <option value="premium">Premium Bikes</option>
     </select>
 
     <label for="pickupDate">Pickup Date</label>
-    <input type="date" id="pickupDate" required min="">
+    <input type="date" id="pickupDate" required min="" />
 
     <label for="pickupTime">Pickup Time</label>
     <select id="pickupTime" required></select>
 
-    <label for="duration">Select Duration</label>
+    <label for="duration">Duration</label>
     <select id="duration" required>
-      <option value="">-- Select Duration --</option>
-      <option value="3">3 Hours</option>
-      <option value="6">6 Hours</option>
-      <option value="24">1 Day</option>
-      <option value="168">7 Days</option>
-      <option value="720">30 Days</option>
+      <option value="3">3 HRS</option>
+      <option value="6">6 HRS</option>
+      <option value="24">1 DAY</option>
+      <option value="168">7 DAYS</option>
+      <option value="720">30 DAYS</option>
     </select>
-
-    <div id="dropoffDetails" style="margin-top:10px;"></div>
 
     <button type="submit">Check Availability</button>
   </form>
 
-  <div class="bikes-list" id="bikeList"></div>
+  <div class="bike-list" id="bikeList"></div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import {
-    getDatabase, ref, get, push, set, child
-  } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
-  import {
-    getAuth, onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+  import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
     authDomain: "waveride-bike-rental-service.firebaseapp.com",
     projectId: "waveride-bike-rental-service",
-    storageBucket: "waveride-bike-rental-service.appspot.com",
+    storageBucket: "waveride-bike-rental-service.firebasestorage.app",
     messagingSenderId: "341920732961",
     appId: "1:341920732961:web:3967e19131f8984f0f1060",
+    measurementId: "G-59M75TD99E"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const auth = getAuth(app);
+  const auth = getAuth();
 
-  const pickupDateEl = document.getElementById("pickupDate");
-  const pickupTimeEl = document.getElementById("pickupTime");
-  const durationEl = document.getElementById("duration");
-  const bikeListEl = document.getElementById("bikeList");
-
-  // Disable past dates
-  const today = new Date().toISOString().split("T")[0];
-  pickupDateEl.min = today;
-
-  // Populate pickup time
-  for (let h = 8; h <= 23; h++) {
+  const pickupTimeSelect = document.getElementById("pickupTime");
+  for (let hour = 8; hour <= 23; hour++) {
     ["00", "30"].forEach(min => {
+      const time = new Date();
+      time.setHours(hour);
+      time.setMinutes(min);
+      const timeStr = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
       const option = document.createElement("option");
-      const hourFormatted = h < 10 ? `0${h}` : h;
-      option.value = `${hourFormatted}:${min}`;
-      option.text = `${hourFormatted}:${min}`;
-      pickupTimeEl.appendChild(option);
+      option.value = `${hour}:${min}`;
+      option.text = timeStr;
+      pickupTimeSelect.appendChild(option);
     });
   }
 
-  const bikesData = {
-    scooter: ["ACTIVA 125CC", "DESTINY 125CC", "HERO ZOOM 125CC"],
-    under150cc: ["PLATINA 110CC", "PULSAR 150", "FZS VERSION 1 125CC"],
-    premium: ["FZS VERSION 2"]
-  };
-
-  const fareRates = {
-    "3": 150,
-    "6": 300,
-    "24": 500,
-    "168": 3000,
-    "720": 8500
-  };
+  document.getElementById("pickupDate").min = new Date().toISOString().split("T")[0];
 
   document.getElementById("bookingForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const category = document.getElementById("category").value;
-    const pickupDate = pickupDateEl.value;
-    const pickupTime = pickupTimeEl.value;
-    const durationHours = parseInt(durationEl.value);
-    const [h, m] = pickupTime.split(":");
-    const pickupDateTime = new Date(`${pickupDate}T${h.padStart(2, '0')}:${m}`);
-    const dropoffDateTime = new Date(pickupDateTime.getTime() + durationHours * 60 * 60 * 1000);
-    const dropoffString = dropoffDateTime.toLocaleString();
+    const date = document.getElementById("pickupDate").value;
+    const time = document.getElementById("pickupTime").value;
+    const duration = parseInt(document.getElementById("duration").value);
 
-    document.getElementById("dropoffDetails").innerHTML =
-      `<strong>Drop-off:</strong> ${dropoffString} | <strong>Est. Fare:</strong> ₹${fareRates[durationHours] || "N/A"}`;
-
-    // Auth check
-    const user = auth.currentUser;
-    if (!user) {
-      alert("Please login to proceed with booking.");
+    if (!auth.currentUser) {
+      alert("You must be logged in to book.");
       return;
     }
+
+    const [hour, minute] = time.split(":");
+    const pickupDateTime = new Date(`${date}T${hour.padStart(2, '0')}:${minute}:00`);
+    const dropoffDateTime = new Date(pickupDateTime.getTime() + duration * 60 * 60 * 1000);
+
+    const categoryBikes = {
+      scooter: ["Activa 125", "Hero Maestro", "Destiny 125"],
+      under150cc: ["Pulsar 150", "Platina 110", "FZS V1"],
+      premium: ["FZS V2", "R15", "Duke 200"]
+    };
+
+    const selectedBikes = categoryBikes[category];
+    const bikeList = document.getElementById("bikeList");
+    bikeList.innerHTML = "<h3>Checking Availability...</h3>";
 
     const availableBikes = [];
-    const bookingsSnapshot = await get(ref(db, "bookings"));
-    const allBookings = bookingsSnapshot.exists() ? bookingsSnapshot.val() : {};
 
-    const categoryBikes = bikesData[category];
-    categoryBikes.forEach(bike => {
+    for (const bike of selectedBikes) {
+      const bookingsRef = ref(db, `bookings/${bike}`);
       let isAvailable = true;
-      for (let key in allBookings) {
-        const b = allBookings[key];
-        if (b.bike === bike) {
-          const start = new Date(b.pickupDateTime).getTime();
-          const end = new Date(b.dropoffDateTime).getTime();
-          const newStart = pickupDateTime.getTime();
-          const newEnd = dropoffDateTime.getTime();
-          if ((newStart < end) && (newEnd > start)) {
-            isAvailable = false;
-            break;
-          }
-        }
-      }
-      if (isAvailable) availableBikes.push(bike);
-    });
 
-    // Show available bikes
-    bikeListEl.innerHTML = "<h3>Available Bikes</h3>";
-    if (availableBikes.length === 0) {
-      bikeListEl.innerHTML += `<div>No bikes available in this category at the selected time. Please try another slot.</div>`;
-      return;
+      await new Promise(resolve => {
+        onValue(bookingsRef, (snapshot) => {
+          snapshot.forEach(child => {
+            const b = child.val();
+            const existingStart = new Date(b.pickup);
+            const existingEnd = new Date(b.dropoff);
+
+            if (pickupDateTime < existingEnd && dropoffDateTime > existingStart) {
+              isAvailable = false;
+            }
+          });
+          resolve();
+        }, { onlyOnce: true });
+      });
+
+      if (isAvailable) {
+        availableBikes.push(bike);
+      }
     }
 
-    availableBikes.forEach(bike => {
-      const div = document.createElement("div");
-      div.className = "bike-item";
-      div.innerHTML = `
-        <strong>${bike}</strong><br>
-        ₹${fareRates[durationHours]}<br>
-        <button onclick="bookBike('${bike}')">Book Now</button>
-      `;
-      bikeListEl.appendChild(div);
-    });
-
-    window.bookBike = async (bikeName) => {
-      const newBooking = {
-        userId: user.uid,
-        bike: bikeName,
-        category: category,
-        pickupDate,
-        pickupTime,
-        pickupDateTime: pickupDateTime.toISOString(),
-        dropoffDateTime: dropoffDateTime.toISOString(),
-        durationHours,
-        fare: fareRates[durationHours]
-      };
-      const bookingRef = push(ref(db, "bookings"));
-      await set(bookingRef, newBooking);
-      alert("Booking Successful!");
-      window.location.href = "success.html";
-    };
+    if (availableBikes.length > 0) {
+      bikeList.innerHTML = "<h3>Available Bikes</h3>" + availableBikes.map(bike => `
+        <div class="bike-item">
+          <strong>${bike}</strong><br/>
+          <button onclick="bookBike('${bike}', '${pickupDateTime.toISOString()}', '${dropoffDateTime.toISOString()}')">Book Now</button>
+        </div>
+      `).join("");
+    } else {
+      bikeList.innerHTML = "<p>No bikes available in this category for selected time slot.</p>";
+    }
   });
+
+  window.bookBike = (bike, pickup, dropoff) => {
+    const uid = auth.currentUser.uid;
+    const newRef = push(ref(db, `bookings/${bike}`));
+    set(newRef, {
+      user: uid,
+      pickup,
+      dropoff,
+      status: "booked"
+    }).then(() => {
+      alert("Booking Confirmed!");
+      window.location.href = "success.html";
+    });
+  };
 </script>
 
 </body>
