@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF- />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WaveRide | Book a Bike</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" />
@@ -15,10 +15,7 @@
       color: #fff;
       padding-bottom: 80px;
     }
-    h2 {
-      text-align: center;
-      margin-top: 20px;
-    }
+    h2 { text-align: center; margin-top: 20px; }
     .container {
       background-color: rgba(255, 255, 255, 0.1);
       padding: 20px;
@@ -28,61 +25,36 @@
       max-width: 500px;
       box-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
+    label { display: block; margin-top: 15px; font-weight: bold; }
     select, input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 5px;
-      border: none;
+      width: 100%; padding: 10px; margin-top: 5px;
+      border-radius: 5px; border: none;
     }
     button {
-      background-color: #00c896;
-      color: white;
-      padding: 12px;
-      width: 100%;
-      border: none;
-      border-radius: 5px;
-      margin-top: 20px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s ease;
+      background-color: #00c896; color: white;
+      padding: 12px; width: 100%;
+      border: none; border-radius: 5px;
+      margin-top: 20px; font-weight: bold;
+      cursor: pointer; transition: 0.3s ease;
     }
-    button:hover {
-      background-color: #009f7a;
-    }
-    .bike-list {
-      margin-top: 20px;
-    }
+    button:hover { background-color: #009f7a; }
+    .bike-list { margin-top: 20px; }
     .bike-card {
-      background: #ffffff20;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 10px;
+      background: #ffffff20; padding: 10px;
+      border-radius: 6px; margin-bottom: 10px;
     }
     nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: #ffffff20;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
+      position: fixed; bottom: 0; width: 100%;
+      background: #ffffff20; display: flex;
+      justify-content: space-around; padding: 10px 0;
       backdrop-filter: blur(8px);
     }
     nav a {
-      color: #fff;
-      text-decoration: none;
-      text-align: center;
-      font-size: 14px;
+      color: #fff; text-decoration: none;
+      text-align: center; font-size: 14px;
     }
     nav a i {
-      font-size: 18px;
-      display: block;
+      font-size: 18px; display: block;
       margin-bottom: 4px;
     }
   </style>
@@ -126,7 +98,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js";
-  import { getDatabase, ref, get, child, push, set } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-database.js";
+  import { getDatabase, ref, get, push, set } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-database.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-auth.js";
 
   const firebaseConfig = {
@@ -195,7 +167,8 @@
       }
 
       if (isAvailable) {
-        available.push({ name: bikeName, fare: bikeData.fare });
+        const fare = bikeData.fare || 300;
+        available.push({ name: bikeName, fare });
       }
     }));
 
