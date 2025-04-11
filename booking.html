@@ -4,13 +4,36 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WaveRide - Book Your Ride</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap">
+  <script src="https://kit.fontawesome.com/a2d9d6b3f3.js" crossorigin="anonymous"></script>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to right, #4facfe, #00f2fe);
       color: #333;
-      padding: 20px;
+      padding-bottom: 80px;
+    }
+
+    nav.topbar {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background-color: #007bff;
+      color: white;
+      padding: 12px 0;
+      font-size: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      position: sticky;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+    }
+
+    nav.topbar a {
+      color: white;
+      text-align: center;
+      text-decoration: none;
     }
 
     .container {
@@ -18,7 +41,7 @@
       padding: 20px;
       border-radius: 15px;
       max-width: 500px;
-      margin: auto;
+      margin: 20px auto;
       box-shadow: 0 8px 16px rgba(0,0,0,0.1);
     }
 
@@ -79,6 +102,23 @@
   </style>
 </head>
 <body>
+  <header style="
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #007bff;
+  margin: 20px auto;
+">
+   WaveRide Homepage
+</header>
+
+
+<nav class="topbar">
+  <a href="index.html"><i class="fas fa-home"></i><br>Home</a>
+  <a href="booking.html"><i class="fas fa-motorcycle"></i><br>Book</a>
+  <a href="mybookings.html"><i class="fas fa-list"></i><br>Bookings</a>
+  <a href="profile.html"><i class="fas fa-user"></i><br>Profile</a>
+</nav>
 
 <div class="container">
   <h2>Book Your Ride</h2>
@@ -121,11 +161,11 @@
   const firebaseConfig = {
     apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
     authDomain: "waveride-bike-rental-service.firebaseapp.com",
+    databaseURL: "https://waveride-bike-rental-service-default-rtdb.firebaseio.com",
     projectId: "waveride-bike-rental-service",
-    storageBucket: "waveride-bike-rental-service.firebasestorage.app",
+    storageBucket: "waveride-bike-rental-service.appspot.com",
     messagingSenderId: "341920732961",
-    appId: "1:341920732961:web:3967e19131f8984f0f1060",
-    measurementId: "G-59M75TD99E"
+    appId: "1:341920732961:web:3967e19131f8984f0f1060"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -148,28 +188,45 @@
 
   document.getElementById("pickupDate").min = new Date().toISOString().split("T")[0];
 
+  const fareChart = {
+    "Activa 125": 300,
+    "Hero Maestro": 280,
+    "Destiny 125": 290,
+    "Pulsar 150": 350,
+    "Platina 110": 250,
+    "FZS V1": 320,
+    "FZS V2": 400,
+    "R15": 450,
+    "Duke 200": 500
+  };
+
+  const categoryBikes = {
+    scooter: ["Activa 125", "Hero Maestro", "Destiny 125"],
+    under150cc: ["Pulsar 150", "Platina 110", "FZS V1"],
+    premium: ["FZS V2", "R15", "Duke 200"]
+  };
+
+  let currentUser = null;
+  onAuthStateChanged(auth, user => {
+    currentUser = user;
+  });
+
   document.getElementById("bookingForm").addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    if (!currentUser) {
+      alert("You must be logged in to book.");
+      return;
+    }
 
     const category = document.getElementById("category").value;
     const date = document.getElementById("pickupDate").value;
     const time = document.getElementById("pickupTime").value;
     const duration = parseInt(document.getElementById("duration").value);
 
-    if (!auth.currentUser) {
-      alert("You must be logged in to book.");
-      return;
-    }
-
     const [hour, minute] = time.split(":");
     const pickupDateTime = new Date(`${date}T${hour.padStart(2, '0')}:${minute}:00`);
     const dropoffDateTime = new Date(pickupDateTime.getTime() + duration * 60 * 60 * 1000);
-
-    const categoryBikes = {
-      scooter: ["Activa 125", "Hero Maestro", "Destiny 125"],
-      under150cc: ["Pulsar 150", "Platina 110", "FZS V1"],
-      premium: ["FZS V2", "R15", "Duke 200"]
-    };
 
     const selectedBikes = categoryBikes[category];
     const bikeList = document.getElementById("bikeList");
@@ -187,7 +244,6 @@
             const b = child.val();
             const existingStart = new Date(b.pickup);
             const existingEnd = new Date(b.dropoff);
-
             if (pickupDateTime < existingEnd && dropoffDateTime > existingStart) {
               isAvailable = false;
             }
@@ -205,6 +261,7 @@
       bikeList.innerHTML = "<h3>Available Bikes</h3>" + availableBikes.map(bike => `
         <div class="bike-item">
           <strong>${bike}</strong><br/>
+          Fare: ₹${fareChart[bike] || 300}<br/>
           <button onclick="bookBike('${bike}', '${pickupDateTime.toISOString()}', '${dropoffDateTime.toISOString()}')">Book Now</button>
         </div>
       `).join("");
@@ -214,12 +271,12 @@
   });
 
   window.bookBike = (bike, pickup, dropoff) => {
-    const uid = auth.currentUser.uid;
     const newRef = push(ref(db, `bookings/${bike}`));
     set(newRef, {
-      user: uid,
+      user: currentUser.uid,
       pickup,
       dropoff,
+      fare: fareChart[bike] || 300,
       status: "booked"
     }).then(() => {
       alert("Booking Confirmed!");
@@ -230,3 +287,4 @@
 
 </body>
 </html>
+
