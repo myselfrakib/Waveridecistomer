@@ -3,122 +3,170 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Profile - WaveRide</title>
+  <title>WaveRide - Profile</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap">
+  <script src="https://kit.fontawesome.com/a2d9d6b3f3.js" crossorigin="anonymous"></script>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #00f2fe, #4facfe);
       margin: 0;
-      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      color: #333;
+      padding-bottom: 80px;
+    }
+
+    nav.topbar {
       display: flex;
-      justify-content: center;
+      justify-content: space-around;
       align-items: center;
-      height: 100vh;
-    }
-    .profile-container {
-      background: #fff;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      background-color: #007bff;
+      color: white;
+      padding: 12px 0;
+      font-size: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      position: sticky;
+      top: 0;
       width: 100%;
-      max-width: 400px;
+      z-index: 1000;
     }
+
+    nav.topbar a {
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      font-size: 13px;
+    }
+
     h2 {
       text-align: center;
-      margin-bottom: 20px;
+      color: #007bff;
+      margin: 20px 10px 10px;
+      font-size: 22px;
     }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
     input, button {
       width: 100%;
       padding: 10px;
-      margin: 8px 0;
+      margin-top: 10px;
+      margin-bottom: 15px;
       border-radius: 8px;
       border: 1px solid #ccc;
+      font-size: 1rem;
     }
+
     button {
-      background-color: #007bff;
+      background: #007bff;
       color: white;
       border: none;
       font-weight: bold;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #0056b3;
+
+    button.logout {
+      background: #dc3545;
+      margin-top: 10px;
     }
-    .logout {
-      margin-top: 20px;
-      background-color: #dc3545;
+
+    @media (max-width: 480px) {
+      nav.topbar a {
+        font-size: 12px;
+      }
+      input, button {
+        font-size: 15px;
+      }
     }
   </style>
 </head>
 <body>
 
-<div class="profile-container">
-  <h2>My Profile</h2>
-  <form id="profileForm">
-    <input type="text" id="name" placeholder="Name" required />
-    <input type="text" id="phone" placeholder="Phone Number" required />
-    <input type="email" id="email" placeholder="Email" readonly />
-    <button type="submit">Update Profile</button>
-  </form>
-  <button class="logout" id="logoutBtn">Logout</button>
+<nav class="topbar">
+  <a href="index.html"><i class="fas fa-home"></i><br>Home</a>
+  <a href="booking.html"><i class="fas fa-motorcycle"></i><br>Book</a>
+  <a href="mybookings.html"><i class="fas fa-list"></i><br>Bookings</a>
+  <a href="profile.html"><i class="fas fa-user"></i><br>Profile</a>
+</nav>
+
+<h2>My Profile</h2>
+<div class="container">
+  <input type="text" id="name" placeholder="Full Name" />
+  <input type="text" id="phone" placeholder="Phone Number" />
+  <button onclick="updateProfile()">Update Details</button>
+  <button class="logout" onclick="logout()">Logout</button>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+  import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-  import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
     authDomain: "waveride-bike-rental-service.firebaseapp.com",
+    databaseURL: "https://waveride-bike-rental-service-default-rtdb.firebaseio.com",
     projectId: "waveride-bike-rental-service",
-    storageBucket: "waveride-bike-rental-service.firebasestorage.app",
+    storageBucket: "waveride-bike-rental-service.appspot.com",
     messagingSenderId: "341920732961",
     appId: "1:341920732961:web:3967e19131f8984f0f1060"
   };
 
   const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
   const db = getDatabase(app);
+  const auth = getAuth();
 
   const nameInput = document.getElementById("name");
   const phoneInput = document.getElementById("phone");
-  const emailInput = document.getElementById("email");
 
-  onAuthStateChanged(auth, async (user) => {
+  let currentUser = null;
+
+  onAuthStateChanged(auth, async user => {
     if (!user) {
-      alert("You must be logged in.");
-      window.location.href = "index.html";
+      alert("Please log in to access your profile.");
+      window.location.href = "login.html";
       return;
     }
-
-    const userRef = ref(db, 'users/' + user.uid);
+    currentUser = user;
+    const userRef = ref(db, `users/${user.uid}`);
     const snapshot = await get(userRef);
     if (snapshot.exists()) {
       const data = snapshot.val();
-      nameInput.value = data.name || "";
-      phoneInput.value = data.phone || "";
-      emailInput.value = user.email || "";
-    } else {
-      emailInput.value = user.email || "";
+      nameInput.value = data.name || '';
+      phoneInput.value = data.phone || '';
     }
-
-    document.getElementById("profileForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      await set(userRef, {
-        name: nameInput.value,
-        phone: phoneInput.value,
-        email: user.email
-      });
-      alert("Profile updated successfully!");
-    });
   });
 
-  document.getElementById("logoutBtn").addEventListener("click", () => {
+  window.updateProfile = function () {
+    if (!currentUser) return;
+    const name = nameInput.value.trim();
+    const phone = phoneInput.value.trim();
+    if (!name || !phone) {
+      alert("Please fill out all fields.");
+      return;
+    }
+    set(ref(db, `users/${currentUser.uid}`), {
+      name,
+      phone,
+      email: currentUser.email
+    }).then(() => {
+      alert("Profile updated!");
+    });
+  };
+
+  window.logout = function () {
     signOut(auth).then(() => {
-      window.location.href = "index.html";
+      alert("Logged out!");
+      window.location.href = "login.html";
     });
-  });
+  };
 </script>
+
 </body>
 </html>
