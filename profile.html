@@ -3,102 +3,119 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WaveRide - Profile</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <title>WaveRide | Profile</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #00c6ff, #0072ff);
-      color: #fff;
       margin: 0;
-      padding: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom right, #00c6ff, #0072ff);
+      color: white;
     }
 
-    nav.topbar {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      background-color: #003366;
+    .topbar {
+      background-color: rgba(0, 0, 0, 0.2);
       display: flex;
       justify-content: space-around;
+      align-items: center;
       padding: 10px 0;
-      z-index: 1000;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      backdrop-filter: blur(5px);
     }
 
-    nav.topbar a {
+    .topbar a {
       color: white;
       text-align: center;
-      text-decoration: none;
       font-size: 14px;
+      text-decoration: none;
     }
 
-    nav.topbar a i {
-      font-size: 20px;
+    .topbar a i {
       display: block;
-      margin-bottom: 5px;
+      font-size: 20px;
+      margin-bottom: 3px;
     }
 
     .container {
       max-width: 400px;
-      margin: 120px auto 40px;
-      background: rgba(255, 255, 255, 0.1);
+      margin: 100px auto 0;
       padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     }
 
-    input, button {
-      width: 90%;
-      padding: 10px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
     }
 
     input {
-      background: #fff;
-      color: #000;
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
     }
 
     button {
-      background-color: #005bea;
+      width: 100%;
+      padding: 12px;
+      background-color: #ff5e62;
       color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
       cursor: pointer;
+      margin-top: 10px;
     }
 
     button:hover {
-      background-color: #0044aa;
+      background-color: #ff3b3f;
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Navbar -->
   <nav class="topbar">
-    <a href="index.html"><i class="fas fa-home"></i><br>Home</a>
-    <a href="booking.html"><i class="fas fa-motorcycle"></i><br>Book</a>
-    <a href="mybookings.html"><i class="fas fa-list"></i><br>Bookings</a>
-    <a href="profile.html"><i class="fas fa-user"></i><br>Profile</a>
+    <a href="index.html"><i class="fas fa-home"></i>Home</a>
+    <a href="booking.html"><i class="fas fa-motorcycle"></i>Book</a>
+    <a href="mybookings.html"><i class="fas fa-list"></i>Bookings</a>
+    <a href="profile.html"><i class="fas fa-user"></i>Profile</a>
   </nav>
 
-  <!-- Profile Form -->
   <div class="container">
-    <h2>My Profile</h2>
-    <input type="text" id="name" placeholder="Your Name">
-    <input type="email" id="email" placeholder="Your Email">
-    <input type="text" id="phone" placeholder="Phone Number">
-    <button onclick="saveProfile()">Save / Update</button>
-    <button onclick="logout()">Logout</button>
+    <h2>Your Profile</h2>
+    <label for="name">Name</label>
+    <input type="text" id="name" placeholder="Your name">
+
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="Your email">
+
+    <label for="phone">Phone</label>
+    <input type="tel" id="phone" placeholder="Your phone number">
+
+    <button id="saveProfile">Save Profile</button>
+    <button id="logoutBtn">Logout</button>
   </div>
 
-  <!-- Firebase v8 CDN -->
+  <!-- Firebase Scripts -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <script>
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyDsn16p7w8b-x8pEA_WTO5F2oUk4MHwcUc",
       authDomain: "wavetravel-3c4c4.firebaseapp.com",
@@ -108,51 +125,50 @@
       messagingSenderId: "298226098137",
       appId: "1:298226098137:web:720953b80e3e61c8bc43c8"
     };
-    firebase.initializeApp(firebaseConfig);
 
+    firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
-    let currentUser = null;
+
+    const nameInput = document.getElementById("name");
+    const emailInput = document.getElementById("email");
+    const phoneInput = document.getElementById("phone");
 
     
-      
-    });
 
-    function loadProfile(uid) {
-      db.ref("users/" + uid).once("value").then(snapshot => {
-        const data = snapshot.val();
-        if (data) {
-          document.getElementById("name").value = data.name || "";
-          document.getElementById("email").value = data.email || "";
-          document.getElementById("phone").value = data.phone || "";
-        }
-      });
-    }
+        // 🔁 Live Sync with Firebase
+        db.ref("users/" + uid).on("value", (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            nameInput.value = data.name || "";
+            emailInput.value = data.email || "";
+            phoneInput.value = data.phone || "";
+          }
+        });
 
-    function saveProfile() {
-      if (!currentUser) return;
-      const uid = currentUser.uid;
-      const name = document.getElementById("name").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const phone = document.getElementById("phone").value.trim();
+        // Save or Update Profile
+        document.getElementById("saveProfile").addEventListener("click", () => {
+          const name = nameInput.value.trim();
+          const email = emailInput.value.trim();
+          const phone = phoneInput.value.trim();
 
-      db.ref("users/" + uid).set({
-        name,
-        email,
-        phone
-      }).then(() => {
-        alert("Profile updated!");
-      }).catch(err => {
-        alert("Error: " + err.message);
-      });
-    }
+          db.ref("users/" + uid).set({ name, email, phone }).then(() => {
+            alert("Profile updated successfully!");
+          });
+        });
 
-    function logout() {
-      auth.signOut().then(() => {
+        // Logout
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+          auth.signOut().then(() => {
+            window.location.href = "index.html";
+          });
+        });
+
+      } else {
+        // Not logged in
         window.location.href = "index.html";
-      });
-    }
+      }
+    });
   </script>
 </body>
 </html>
-
