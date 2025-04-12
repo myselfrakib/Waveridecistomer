@@ -40,6 +40,7 @@
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#users">Users</a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#vehicles">Vehicles</a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#addVehicle">Add Vehicle</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#festiveFare">Festive Fare</a></li>
   </ul>
 
   <div class="tab-content">
@@ -110,6 +111,36 @@
       </div>
     </div>
 
+    <!-- 🎉 Festive Fare Control -->
+    <div class="tab-pane fade" id="festiveFare">
+      <div class="card">
+        <div class="card-header">Festive Fare Control</div>
+        <div class="card-body">
+          <form id="festiveForm" class="row g-3">
+            <div class="col-md-4">
+              <label>From Date</label>
+              <input type="date" id="festiveFrom" class="form-control" required />
+            </div>
+            <div class="col-md-4">
+              <label>To Date</label>
+              <input type="date" id="festiveTo" class="form-control" required />
+            </div>
+            <div class="col-md-4">
+              <label>Status</label>
+              <select id="festiveStatus" class="form-select">
+                <option value="true">Enabled</option>
+                <option value="false">Disabled</option>
+              </select>
+            </div>
+            <div id="categoryFareInputs" class="col-12 mt-3"></div>
+            <div class="col-12">
+              <button class="btn btn-success w-100" type="submit">Save Festive Rates</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -136,6 +167,8 @@
     signOut(auth).then(() => window.location.href = "adminlogin.html");
   };
 
+  let allCategories = [];
+
   onAuthStateChanged(auth, async (user) => {
     if (!user) return (window.location.href = "adminlogin.html");
     const snap = await get(ref(db, `admins/${user.uid}`));
@@ -147,14 +180,17 @@
   });
 
   function loadDashboard() {
+    const bookingsTable = document.getElementById("bookingsTable");
+    const usersTable = document.getElementById("usersTable");
+    const vehiclesTable = document.getElementById("vehiclesTable");
+
     onValue(ref(db, "bookings"), snap => {
-      const table = document.getElementById("bookingsTable");
-      table.innerHTML = "";
+      bookingsTable.innerHTML = "";
       let i = 1;
       for (let vehicle in snap.val()) {
         for (let id in snap.val()[vehicle]) {
           const b = snap.val()[vehicle][id];
-          table.innerHTML += `<tr>
+          bookingsTable.innerHTML += `<tr>
             <td>${i++}</td><td>${b.user}</td><td>${vehicle}</td><td>${b.pickup}</td><td>${b.dropoff}</td>
             <td>${b.fare}</td><td>${b.status}</td>
             <td><button class="btn btn-sm btn-danger" onclick="remove(ref(db, 'bookings/${vehicle}/${id}'))">Delete</button></td>
@@ -164,12 +200,11 @@
     });
 
     onValue(ref(db, "users"), snap => {
-      const table = document.getElementById("usersTable");
-      table.innerHTML = "";
+      usersTable.innerHTML = "";
       let i = 1;
       for (let id in snap.val()) {
         const u = snap.val()[id];
-        table.innerHTML += `<tr>
+        usersTable.innerHTML += `<tr>
           <td>${i++}</td><td>${u.name || ""}</td><td>${u.email || ""}</td><td>${u.phone || ""}</td>
           <td><button class="btn btn-sm btn-danger" onclick="remove(ref(db, 'users/${id}'))">Delete</button></td>
         </tr>`;
@@ -177,36 +212,60 @@
     });
 
     onValue(ref(db, "vehicles"), snap => {
-      const table = document.getElementById("vehiclesTable");
-      table.innerHTML = "";
+      vehiclesTable.innerHTML = "";
       let i = 1;
+      allCategories = Object.keys(snap.val() || {});
       for (let cat in snap.val()) {
         for (let model in snap.val()[cat]) {
           const v = snap.val()[cat][model];
-          table.innerHTML += `<tr>
+          vehiclesTable.innerHTML += `<tr>
             <td>${i++}</td><td>${cat}</td><td>${model}</td><td>${v.status}</td>
             <td>
-              <button class="btn btn-sm btn-warning me-1" onclick="disableVehicle('${cat}', '${model}')">Disable</button>
-              <button class="btn btn-sm btn-danger" onclick="deleteVehicle('${cat}', '${model}')">Delete</button>
+              <button class="btn btn-sm btn-warning me-1" onclick="set(ref(db, 'vehicles/${cat}/${model}'), { status: 'disabled' })">Disable</button>
+              <button class="btn btn-sm btn-danger" onclick="remove(ref(db, 'vehicles/${cat}/${model}')); remove(ref(db, 'fareRules/${model}'));">Delete</button>
             </td>
           </tr>`;
         }
       }
+      generateCategoryFareFields(allCategories);
     });
 
-    const vehicleCategory = document.getElementById("vehicleCategory");
-    onValue(ref(db, "vehicles"), snap => {
-      vehicleCategory.innerHTML = "";
-      for (let cat in snap.val()) {
-        const opt = document.createElement("option");
-        opt.value = cat;
-        opt.text = cat;
-        vehicleCategory.appendChild(opt);
+    // Preload Festive Fare Values
+    get(ref(db, "festiveRates")).then(snap => {
+      const data = snap.val();
+      if (!data) return;
+      document.getElementById("festiveFrom").value = data.from || "";
+      document.getElementById("festiveTo").value = data.to || "";
+      document.getElementById("festiveStatus").value = String(data.enabled || false);
+      for (let cat in data.customFares) {
+        for (let dur in data.customFares[cat]) {
+          const input = document.getElementById(`fare_${cat}_${dur}`);
+          if (input) input.value = data.customFares[cat][dur];
+        }
       }
     });
   }
 
-  // Add Vehicle Logic
+  function generateCategoryFareFields(categories) {
+    const container = document.getElementById("categoryFareInputs");
+    container.innerHTML = "<hr><strong>Set Fare for Each Category & Duration</strong><div class='row'></div>";
+    const row = container.querySelector(".row");
+    const durations = { "3": "3 HRS", "6": "6 HRS", "24": "1 DAY", "168": "7 DAYS", "720": "30 DAYS" };
+
+    categories.forEach(category => {
+      const col = document.createElement("div");
+      col.className = "col-md-6";
+      col.innerHTML = `<div class="border p-2 mb-3 rounded bg-light">
+        <strong>${category}</strong>
+        ${Object.entries(durations).map(([key, label]) => `
+          <label>${label}</label>
+          <input type="number" class="form-control mb-1" id="fare_${category}_${key}" placeholder="Fare for ${label}" required />
+        `).join('')}
+      </div>`;
+      row.appendChild(col);
+    });
+  }
+
   document.getElementById("addVehicleForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const cat = document.getElementById("vehicleCategory").value;
@@ -218,7 +277,6 @@
       168: +document.getElementById("fare168").value,
       720: +document.getElementById("fare720").value
     };
-    if (!cat || !name) return alert("All fields required");
     await set(ref(db, `vehicles/${cat}/${name}`), { status: "available" });
     await set(ref(db, `fareRules/${name}`), {
       from: new Date().toISOString().split("T")[0],
@@ -229,24 +287,24 @@
     e.target.reset();
   });
 
-  // Disable Vehicle
-  window.disableVehicle = async (category, model) => {
-    const confirmDisable = confirm(`Disable ${model}? It won't show in booking.`);
-    if (confirmDisable) {
-      await set(ref(db, `vehicles/${category}/${model}`), { status: "disabled" });
-      alert(`${model} disabled`);
-    }
-  };
+  document.getElementById("festiveForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const from = document.getElementById("festiveFrom").value;
+    const to = document.getElementById("festiveTo").value;
+    const enabled = document.getElementById("festiveStatus").value === "true";
+    const customFares = {};
 
-  // Delete Vehicle
-  window.deleteVehicle = async (category, model) => {
-    const confirmDelete = confirm(`Permanently delete ${model}?`);
-    if (confirmDelete) {
-      await remove(ref(db, `vehicles/${category}/${model}`));
-      await remove(ref(db, `fareRules/${model}`));
-      alert(`${model} deleted`);
-    }
-  };
+    allCategories.forEach(cat => {
+      customFares[cat] = {};
+      ["3", "6", "24", "168", "720"].forEach(dur => {
+        const val = parseInt(document.getElementById(`fare_${cat}_${dur}`).value);
+        customFares[cat][dur] = val;
+      });
+    });
+
+    await set(ref(db, "festiveRates"), { from, to, enabled, customFares });
+    alert("Festive rates updated!");
+  });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
