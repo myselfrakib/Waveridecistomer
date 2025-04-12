@@ -8,7 +8,7 @@
   <style>
     body {
       background: linear-gradient(to right, #3f87a6, #ebf8e1);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
     }
     .card {
       border-radius: 1rem;
@@ -33,7 +33,6 @@
 
 <div class="container py-4 position-relative">
   <button class="btn btn-danger logout-btn" onclick="logout()">Logout</button>
-
   <h1 class="text-center text-primary mb-4">WaveRide Admin Dashboard</h1>
 
   <ul class="nav nav-tabs mb-3">
@@ -58,6 +57,7 @@
                 <th>Dropoff</th>
                 <th>Fare</th>
                 <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody id="bookingsTable"></tbody>
@@ -79,6 +79,7 @@
                 <th>Name</th>
                 <th>Email</th>
                 <th>Phone</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody id="usersTable"></tbody>
@@ -104,12 +105,8 @@
         <div class="card-body">
           <form id="addVehicleForm">
             <div class="row mb-3">
-              <div class="col-md-4">
-                <input type="text" id="vehicleId" class="form-control" placeholder="Vehicle ID" required>
-              </div>
-              <div class="col-md-4">
-                <input type="text" id="vehicleModel" class="form-control" placeholder="Model Name" required>
-              </div>
+              <div class="col-md-4"><input type="text" id="vehicleId" class="form-control" placeholder="Vehicle ID" required></div>
+              <div class="col-md-4"><input type="text" id="vehicleModel" class="form-control" placeholder="Model Name" required></div>
               <div class="col-md-4">
                 <select id="vehicleStatus" class="form-select" required>
                   <option value="">Select Status</option>
@@ -118,14 +115,12 @@
                 </select>
               </div>
             </div>
-            <div class="mb-3">
-              <select id="vehicleCategory" class="form-select" required>
-                <option value="">Select Category</option>
-                <option value="scooter">Scooter</option>
-                <option value="under150cc">Bikes Under 150cc</option>
-                <option value="premium">Premium Bikes</option>
-              </select>
-            </div>
+            <select id="vehicleCategory" class="form-select mb-3" required>
+              <option value="">Select Category</option>
+              <option value="scooter">Scooter</option>
+              <option value="under150cc">Bikes Under 150cc</option>
+              <option value="premium">Premium Bikes</option>
+            </select>
             <button type="submit" class="btn btn-primary w-100">Add Vehicle</button>
           </form>
         </div>
@@ -137,7 +132,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+  import { getDatabase, ref, onValue, set, remove } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
   import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
   const firebaseConfig = {
@@ -154,6 +149,18 @@
   const db = getDatabase(app);
   const auth = getAuth();
 
+  function formatDate(dateStr) {
+    const d = new Date(dateStr);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    let hours = d.getHours();
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
+  }
+
   function logout() {
     signOut(auth).then(() => window.location.href = "index.html");
   }
@@ -163,29 +170,30 @@
   const usersTable = document.getElementById("usersTable");
   const addVehicleForm = document.getElementById("addVehicleForm");
 
-  // Bookings
+  // Load Bookings
   onValue(ref(db, "bookings"), (snapshot) => {
     const data = snapshot.val() || {};
     bookingsTable.innerHTML = "";
     let count = 1;
     for (const vehicle in data) {
-      for (const bid in data[vehicle]) {
-        const b = data[vehicle][bid];
+      for (const bookingId in data[vehicle]) {
+        const b = data[vehicle][bookingId];
         bookingsTable.innerHTML += `
           <tr>
             <td>${count++}</td>
             <td>${vehicle}</td>
             <td>${b.user}</td>
-            <td>${new Date(b.pickup).toLocaleString()}</td>
-            <td>${new Date(b.dropoff).toLocaleString()}</td>
+            <td>${formatDate(b.pickup)}</td>
+            <td>${formatDate(b.dropoff)}</td>
             <td>₹${b.fare}</td>
             <td>${b.status}</td>
+            <td><button class="btn btn-sm btn-danger" onclick="deleteBooking('${vehicle}', '${bookingId}')">Delete</button></td>
           </tr>`;
       }
     }
   });
 
-  // Users
+  // Load Users
   onValue(ref(db, "users"), (snapshot) => {
     const data = snapshot.val() || {};
     usersTable.innerHTML = "";
@@ -199,11 +207,12 @@
           <td>${u.name || '-'}</td>
           <td>${u.email || '-'}</td>
           <td>${u.phone || '-'}</td>
+          <td><button class="btn btn-sm btn-danger" onclick="deleteUser('${uid}')">Delete</button></td>
         </tr>`;
     }
   });
 
-  // Vehicles
+  // Load Vehicles
   onValue(ref(db, "vehicles"), (snapshot) => {
     const data = snapshot.val() || {};
     vehiclesTable.innerHTML = "";
@@ -239,7 +248,20 @@
       alert("Error adding vehicle: " + err.message);
     });
   });
-</script>
 
+  // Delete booking
+  window.deleteBooking = function(vehicle, bookingId) {
+    if (confirm("Delete this booking?")) {
+      remove(ref(db, `bookings/${vehicle}/${bookingId}`));
+    }
+  };
+
+  // Delete user
+  window.deleteUser = function(userId) {
+    if (confirm("Delete this user?")) {
+      remove(ref(db, `users/${userId}`));
+    }
+  };
+</script>
 </body>
 </html>
