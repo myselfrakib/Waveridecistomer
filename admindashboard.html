@@ -75,7 +75,7 @@
         <div class="card-header">Available Vehicles</div>
         <div class="card-body table-responsive">
           <table class="table table-striped">
-            <thead><tr><th>#</th><th>Category</th><th>Model</th><th>Status</th></tr></thead>
+            <thead><tr><th>#</th><th>Category</th><th>Model</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="vehiclesTable"></tbody>
           </table>
         </div>
@@ -109,6 +109,7 @@
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -131,7 +132,6 @@
   const db = getDatabase(app);
   const auth = getAuth();
 
-  // Logout
   document.getElementById("logoutBtn").onclick = () => {
     signOut(auth).then(() => window.location.href = "adminlogin.html");
   };
@@ -147,7 +147,6 @@
   });
 
   function loadDashboard() {
-    // Bookings
     onValue(ref(db, "bookings"), snap => {
       const table = document.getElementById("bookingsTable");
       table.innerHTML = "";
@@ -164,7 +163,6 @@
       }
     });
 
-    // Users
     onValue(ref(db, "users"), snap => {
       const table = document.getElementById("usersTable");
       table.innerHTML = "";
@@ -178,7 +176,6 @@
       }
     });
 
-    // Vehicles
     onValue(ref(db, "vehicles"), snap => {
       const table = document.getElementById("vehiclesTable");
       table.innerHTML = "";
@@ -186,12 +183,17 @@
       for (let cat in snap.val()) {
         for (let model in snap.val()[cat]) {
           const v = snap.val()[cat][model];
-          table.innerHTML += `<tr><td>${i++}</td><td>${cat}</td><td>${model}</td><td>${v.status}</td></tr>`;
+          table.innerHTML += `<tr>
+            <td>${i++}</td><td>${cat}</td><td>${model}</td><td>${v.status}</td>
+            <td>
+              <button class="btn btn-sm btn-warning me-1" onclick="disableVehicle('${cat}', '${model}')">Disable</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteVehicle('${cat}', '${model}')">Delete</button>
+            </td>
+          </tr>`;
         }
       }
     });
 
-    // Populate category dropdown
     const vehicleCategory = document.getElementById("vehicleCategory");
     onValue(ref(db, "vehicles"), snap => {
       vehicleCategory.innerHTML = "";
@@ -204,7 +206,7 @@
     });
   }
 
-  // Add Vehicle Form
+  // Add Vehicle Logic
   document.getElementById("addVehicleForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const cat = document.getElementById("vehicleCategory").value;
@@ -216,19 +218,35 @@
       168: +document.getElementById("fare168").value,
       720: +document.getElementById("fare720").value
     };
-
     if (!cat || !name) return alert("All fields required");
-
     await set(ref(db, `vehicles/${cat}/${name}`), { status: "available" });
     await set(ref(db, `fareRules/${name}`), {
       from: new Date().toISOString().split("T")[0],
       to: "2030-12-31",
       durations: fare
     });
-
     alert("Vehicle added successfully!");
     e.target.reset();
   });
+
+  // Disable Vehicle
+  window.disableVehicle = async (category, model) => {
+    const confirmDisable = confirm(`Disable ${model}? It won't show in booking.`);
+    if (confirmDisable) {
+      await set(ref(db, `vehicles/${category}/${model}`), { status: "disabled" });
+      alert(`${model} disabled`);
+    }
+  };
+
+  // Delete Vehicle
+  window.deleteVehicle = async (category, model) => {
+    const confirmDelete = confirm(`Permanently delete ${model}?`);
+    if (confirmDelete) {
+      await remove(ref(db, `vehicles/${category}/${model}`));
+      await remove(ref(db, `fareRules/${model}`));
+      alert(`${model} deleted`);
+    }
+  };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
