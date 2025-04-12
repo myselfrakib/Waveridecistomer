@@ -10,23 +10,10 @@
       background: linear-gradient(to right, #3f87a6, #ebf8e1);
       font-family: 'Segoe UI', sans-serif;
     }
-    .card {
-      border-radius: 1rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    .card-header {
-      background-color: #0d6efd;
-      color: white;
-    }
-    .nav-tabs .nav-link.active {
-      background-color: #0d6efd;
-      color: white;
-    }
-    .logout-btn {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-    }
+    .card { border-radius: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .card-header { background-color: #0d6efd; color: white; }
+    .nav-tabs .nav-link.active { background-color: #0d6efd; color: white; }
+    .logout-btn { position: absolute; top: 20px; right: 20px; }
   </style>
 </head>
 <body>
@@ -36,73 +23,36 @@
   <h1 class="text-center text-primary mb-4">WaveRide Admin Dashboard</h1>
 
   <ul class="nav nav-tabs mb-3">
-    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#bookings">Bookings</button></li>
-    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#users">Users</button></li>
-    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vehicles">Vehicles</button></li>
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#vehicles">Vehicles</button></li>
   </ul>
 
   <div class="tab-content">
-    <!-- Bookings Tab -->
-    <div class="tab-pane fade show active" id="bookings">
-      <div class="card mb-4">
-        <div class="card-header">All Bookings</div>
-        <div class="card-body table-responsive">
-          <table class="table table-striped">
-            <thead>
-              <tr><th>SL</th><th>Vehicle</th><th>User</th><th>Pickup</th><th>Dropoff</th><th>Fare</th><th>Status</th><th>Action</th></tr>
-            </thead>
-            <tbody id="bookingsTable"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Users Tab -->
-    <div class="tab-pane fade" id="users">
-      <div class="card mb-4">
-        <div class="card-header">All Users</div>
-        <div class="card-body table-responsive">
-          <table class="table table-striped">
-            <thead>
-              <tr><th>SL</th><th>User ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Action</th></tr>
-            </thead>
-            <tbody id="usersTable"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
     <!-- Vehicles Tab -->
-    <div class="tab-pane fade" id="vehicles">
+    <div class="tab-pane fade show active" id="vehicles">
       <div class="card mb-3">
-        <div class="card-header">All Vehicles</div>
+        <div class="card-header">Available Vehicles</div>
         <div class="card-body table-responsive">
           <table class="table table-striped">
-            <thead><tr><th>ID</th><th>Model</th><th>Status</th><th>Category</th></tr></thead>
+            <thead><tr><th>Model</th><th>Category</th><th>Status</th></tr></thead>
             <tbody id="vehiclesTable"></tbody>
           </table>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-header">Add New Vehicle</div>
+        <div class="card-header">Add Vehicle (Use Existing Category Only)</div>
         <div class="card-body">
           <form id="addVehicleForm">
-            <div class="row mb-3">
-              <div class="col-md-4"><input type="text" id="vehicleId" class="form-control" placeholder="Vehicle ID" required></div>
-              <div class="col-md-4"><input type="text" id="vehicleModel" class="form-control" placeholder="Model Name" required></div>
-              <div class="col-md-4">
-                <select id="vehicleStatus" class="form-select" required>
-                  <option value="">Select Status</option>
-                  <option value="available">Available</option>
-                  <option value="unavailable">Unavailable</option>
-                </select>
-              </div>
-            </div>
-            <select id="vehicleCategory" class="form-select mb-3" required>
+            <select id="vehicleCategory" class="form-select mb-2" required>
               <option value="">Loading categories...</option>
             </select>
-            <button type="submit" class="btn btn-primary w-100">Add Vehicle</button>
+            <input type="text" id="vehicleModel" class="form-control mb-2" placeholder="Vehicle Model" required>
+            <select id="vehicleStatus" class="form-select mb-3" required>
+              <option value="">Select Availability</option>
+              <option value="available">Available</option>
+              <option value="unavailable">Unavailable</option>
+            </select>
+            <button type="submit" class="btn btn-success w-100">Add Vehicle</button>
           </form>
         </div>
       </div>
@@ -113,7 +63,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getDatabase, ref, onValue, set, remove } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+  import { getDatabase, ref, onValue, set, push } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
   import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
   const firebaseConfig = {
@@ -130,112 +80,55 @@
   const db = getDatabase(app);
   const auth = getAuth();
 
-  function formatDate(dateStr) {
-    const d = new Date(dateStr);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    let hours = d.getHours();
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12 || 12;
-    return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
-  }
-
   function logout() {
     signOut(auth).then(() => window.location.href = "index.html");
   }
 
-  const bookingsTable = document.getElementById("bookingsTable");
-  const usersTable = document.getElementById("usersTable");
   const vehiclesTable = document.getElementById("vehiclesTable");
   const vehicleCategory = document.getElementById("vehicleCategory");
   const addVehicleForm = document.getElementById("addVehicleForm");
 
-  // Bookings
-  onValue(ref(db, "bookings"), (snapshot) => {
-    const data = snapshot.val() || {};
-    bookingsTable.innerHTML = "";
-    let count = 1;
-    for (const vehicle in data) {
-      for (const bookingId in data[vehicle]) {
-        const b = data[vehicle][bookingId];
-        bookingsTable.innerHTML += `
-          <tr>
-            <td>${count++}</td>
-            <td>${vehicle}</td>
-            <td>${b.user}</td>
-            <td>${formatDate(b.pickup)}</td>
-            <td>${formatDate(b.dropoff)}</td>
-            <td>₹${b.fare}</td>
-            <td>${b.status}</td>
-            <td><button class="btn btn-sm btn-danger" onclick="deleteBooking('${vehicle}', '${bookingId}')">Delete</button></td>
-          </tr>`;
-      }
-    }
-  });
-
-  // Users
-  onValue(ref(db, "users"), (snapshot) => {
-    const data = snapshot.val() || {};
-    usersTable.innerHTML = "";
-    let count = 1;
-    for (const uid in data) {
-      const u = data[uid];
-      usersTable.innerHTML += `
-        <tr>
-          <td>${count++}</td>
-          <td>${uid}</td>
-          <td>${u.name || '-'}</td>
-          <td>${u.email || '-'}</td>
-          <td>${u.phone || '-'}</td>
-          <td><button class="btn btn-sm btn-danger" onclick="deleteUser('${uid}')">Delete</button></td>
-        </tr>`;
-    }
-  });
-
-  // Vehicles & dynamic categories
+  // Load existing vehicles and extract unique categories
   onValue(ref(db, "vehicles"), (snapshot) => {
     const data = snapshot.val() || {};
     vehiclesTable.innerHTML = "";
     const categories = new Set();
+
     for (const id in data) {
       const v = data[id];
-      vehiclesTable.innerHTML += `<tr><td>${id}</td><td>${v.model}</td><td>${v.status}</td><td>${v.category || '-'}</td></tr>`;
-      if (v.category) categories.add(v.category);
+      categories.add(v.category);
+      vehiclesTable.innerHTML += `<tr>
+        <td>${v.model}</td>
+        <td>${v.category || '-'}</td>
+        <td>${v.status}</td>
+      </tr>`;
     }
+
     vehicleCategory.innerHTML = '<option value="">Select Category</option>';
     categories.forEach(cat => {
       vehicleCategory.innerHTML += `<option value="${cat}">${cat}</option>`;
     });
   });
 
+  // Add new vehicle under selected existing category
   addVehicleForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    const id = document.getElementById("vehicleId").value.trim();
+    const category = vehicleCategory.value;
     const model = document.getElementById("vehicleModel").value.trim();
     const status = document.getElementById("vehicleStatus").value;
-    const category = vehicleCategory.value;
 
-    set(ref(db, `vehicles/${id}`), {
-      model, status, category, type: category
-    }).then(() => {
-      alert("Vehicle added!");
-      addVehicleForm.reset();
-    });
+    if (!category || !model || !status) return alert("Please fill in all fields");
+
+    const newRef = push(ref(db, `vehicles`));
+    set(newRef, { category, model, status })
+      .then(() => {
+        alert("Vehicle added successfully!");
+        addVehicleForm.reset();
+      })
+      .catch(err => {
+        alert("Error adding vehicle: " + err.message);
+      });
   });
-
-  window.deleteBooking = function(vehicle, bookingId) {
-    if (confirm("Delete this booking?")) {
-      remove(ref(db, `bookings/${vehicle}/${bookingId}`));
-    }
-  };
-
-  window.deleteUser = function(userId) {
-    if (confirm("Delete this user?")) {
-      remove(ref(db, `users/${userId}`));
-    }
-  };
 </script>
 </body>
 </html>
