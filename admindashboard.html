@@ -2,291 +2,165 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WaveRide Admin Dashboard</title>
-  <!-- ✅ Fixed Font Awesome CDN -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap">
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: Arial, sans-serif;
       background: linear-gradient(to right, #4facfe, #00f2fe);
       color: #333;
     }
-
-    nav.topbar {
-      display: flex;
-      justify-content: space-around;
-      background-color: #007bff;
-      color: white;
-      padding: 12px 0;
-    }
-
-    nav.topbar a {
-      color: white;
-      text-decoration: none;
-      text-align: center;
-      font-size: 14px;
-    }
-
     .container {
       max-width: 1000px;
-      margin: 30px auto;
+      margin: 50px auto;
       background: white;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
     h2 {
       text-align: center;
-      color: #007bff;
-    }
-
-    .tabs {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
       margin-bottom: 20px;
     }
-
-    .tabs button {
-      padding: 10px 20px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .tabs button.active {
-      background: #0056b3;
-    }
-
-    .section {
-      display: none;
-    }
-
-    .section.active {
-      display: block;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    th {
-      background: #007bff;
-      color: white;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
+    select, input, button {
+      margin: 5px;
       padding: 10px;
-      text-align: center;
-    }
-
-    form {
-      margin-top: 20px;
-    }
-
-    label {
-      display: block;
-      margin-top: 12px;
-      font-weight: bold;
-    }
-
-    input, select, button[type="submit"] {
-      width: 100%;
-      padding: 12px;
-      margin-top: 6px;
-      border-radius: 8px;
+      border-radius: 5px;
       border: 1px solid #ccc;
-      font-size: 1rem;
     }
-
-    button[type="submit"] {
-      background: #007bff;
+    .section {
+      margin-bottom: 30px;
+    }
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: green;
       color: white;
-      font-weight: bold;
-      border: none;
-    }
-
-    @media (max-width: 600px) {
-      .container {
-        margin: 10px;
-        padding: 20px;
-      }
-
-      table {
-        font-size: 12px;
-      }
+      padding: 10px 20px;
+      border-radius: 5px;
+      display: none;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h2>WaveRide Admin Dashboard</h2>
 
-<nav class="topbar">
-  <a href="index.html"><i class="fas fa-home"></i><br>Home</a>
-  <a href="booking.html"><i class="fas fa-motorcycle"></i><br>Book</a>
-  <a href="mybookings.html"><i class="fas fa-list"></i><br>Bookings</a>
-  <a href="profile.html"><i class="fas fa-user"></i><br>Profile</a>
-</nav>
+    <div class="section">
+      <h3>Change Booking Status</h3>
+      <input type="text" id="bookingId" placeholder="Booking ID" />
+      <select id="status">
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="cancelled">Cancelled</option>
+        <option value="completed">Completed</option>
+      </select>
+      <button onclick="updateStatus()">Update Status</button>
+    </div>
 
-<div class="container">
-  <h2>WaveRide Admin Dashboard</h2>
-
-  <div class="tabs">
-    <button onclick="switchTab('bookings')" class="active">📋 Bookings</button>
-    <button onclick="switchTab('fareRules')">💸 Fare Rules</button>
-    <button onclick="switchTab('users')">👤 Customer Details</button>
+    <div class="section">
+      <h3>Change Fare</h3>
+      <select id="vehicleSelect">
+        <option disabled selected>Select Vehicle</option>
+      </select>
+      <input type="date" id="fromDate" />
+      <input type="date" id="toDate" />
+      <input type="number" id="fare3hrs" placeholder="3HRS Fare" />
+      <input type="number" id="fare6hrs" placeholder="6HRS Fare" />
+      <input type="number" id="fare1day" placeholder="1DAY Fare" />
+      <input type="number" id="fare7days" placeholder="7DAYS Fare" />
+      <input type="number" id="fare30days" placeholder="30DAYS Fare" />
+      <button onclick="updateFare()">Update Fare</button>
+    </div>
   </div>
 
-  <div id="bookings" class="section active">
-    <h3>Live Bookings</h3>
-    <div id="userBookings">Loading...</div>
-  </div>
+  <div class="toast" id="toast">Updated successfully!</div>
 
-  <div id="fareRules" class="section">
-    <h3>Update Fare Rules</h3>
-    <form id="fareForm">
-      <label>Vehicle Name:</label>
-      <input type="text" id="vehicle" required>
-      <label>Effective From:</label>
-      <input type="date" id="from" required>
-      <label>Effective To:</label>
-      <input type="date" id="to" required>
-      <label>3 HRS:</label><input type="number" id="fare3" required>
-      <label>6 HRS:</label><input type="number" id="fare6" required>
-      <label>1 DAY:</label><input type="number" id="fare24" required>
-      <label>7 DAYS:</label><input type="number" id="fare168" required>
-      <label>30 DAYS:</label><input type="number" id="fare720" required>
-      <button type="submit">Update Fare Rules</button>
-    </form>
-  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-  <div id="users" class="section">
-    <h3>Registered Customers</h3>
-    <div id="userList">Loading...</div>
-  </div>
-</div>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "https://waveride-bike-rental-service-default-rtdb.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
-    authDomain: "waveride-bike-rental-service.firebaseapp.com",
-    databaseURL: "https://waveride-bike-rental-service-default-rtdb.firebaseio.com",
-    projectId: "waveride-bike-rental-service",
-    storageBucket: "waveride-bike-rental-service.appspot.com",
-    messagingSenderId: "341920732961",
-    appId: "1:341920732961:web:3967e19131f8984f0f1060"
-  };
+    const toast = document.getElementById("toast");
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const auth = getAuth();
-
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      alert("You must be logged in to access the admin panel.");
-      window.location.href = "login.html";
-    } else {
-      const roleRef = ref(db, `users/${user.uid}/role`);
-      onValue(roleRef, snapshot => {
-        const role = snapshot.val();
-        if (role !== "admin") {
-          alert("Access denied. Admins only.");
-          window.location.href = "index.html";
-        } else {
-          loadAdminContent();
-        }
-      }, { onlyOnce: true });
+    function showToast(message) {
+      toast.textContent = message;
+      toast.style.display = "block";
+      setTimeout(() => {
+        toast.style.display = "none";
+      }, 3000);
     }
-  });
 
-  function loadAdminContent() {
-    const bookingsDiv = document.getElementById("userBookings");
-    const userListDiv = document.getElementById("userList");
+    window.updateStatus = function () {
+      const bookingId = document.getElementById("bookingId").value;
+      const status = document.getElementById("status").value;
 
-    onValue(ref(db, 'bookings'), snapshot => {
-      let html = '<table><tr><th>Vehicle</th><th>User</th><th>Pickup</th><th>Dropoff</th><th>Fare</th><th>Status</th></tr>';
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        for (const vehicle in data) {
-          for (const bookingId in data[vehicle]) {
-            const booking = data[vehicle][bookingId];
-            html += `<tr>
-              <td>${vehicle}</td>
-              <td>${booking.user}</td>
-              <td>${new Date(booking.pickup).toLocaleString()}</td>
-              <td>${new Date(booking.dropoff).toLocaleString()}</td>
-              <td>₹${booking.fare}</td>
-              <td>${booking.status}</td>
-            </tr>`;
-          }
-        }
-      } else {
-        html += "<tr><td colspan='6'>No bookings found</td></tr>";
-      }
-      html += '</table>';
-      bookingsDiv.innerHTML = html;
-    });
+      if (!bookingId) return alert("Enter Booking ID");
 
-    onValue(ref(db, 'users'), snapshot => {
-      let html = '<table><tr><th>User ID</th><th>Name</th><th>Phone</th><th>Role</th></tr>';
-      if (snapshot.exists()) {
-        const users = snapshot.val();
-        for (const uid in users) {
-          const user = users[uid];
-          html += `<tr>
-            <td>${uid}</td>
-            <td>${user.name || '-'}</td>
-            <td>${user.phone || '-'}</td>
-            <td>${user.role || 'user'}</td>
-          </tr>`;
-        }
-      } else {
-        html += "<tr><td colspan='4'>No users found</td></tr>";
-      }
-      html += '</table>';
-      userListDiv.innerHTML = html;
-    });
+      const bookingRef = ref(db, `bookings/${bookingId}`);
+      update(bookingRef, { status })
+        .then(() => showToast("Booking status updated!"))
+        .catch((err) => alert("Failed: " + err));
+    };
 
-    document.getElementById("fareForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const vehicle = document.getElementById("vehicle").value.trim();
-      const rule = {
-        from: document.getElementById("from").value,
-        to: document.getElementById("to").value,
-        durations: {
-          "3": parseInt(document.getElementById("fare3").value),
-          "6": parseInt(document.getElementById("fare6").value),
-          "24": parseInt(document.getElementById("fare24").value),
-          "168": parseInt(document.getElementById("fare168").value),
-          "720": parseInt(document.getElementById("fare720").value)
+    window.updateFare = function () {
+      const vehicleId = document.getElementById("vehicleSelect").value;
+      const fromDate = document.getElementById("fromDate").value;
+      const toDate = document.getElementById("toDate").value;
+      const fare3hrs = +document.getElementById("fare3hrs").value;
+      const fare6hrs = +document.getElementById("fare6hrs").value;
+      const fare1day = +document.getElementById("fare1day").value;
+      const fare7days = +document.getElementById("fare7days").value;
+      const fare30days = +document.getElementById("fare30days").value;
+
+      if (!vehicleId || !fromDate || !toDate) return alert("Fill all fields");
+
+      const fareRef = ref(db, `fareRules/${vehicleId}`);
+      const data = {
+        from: fromDate,
+        to: toDate,
+        rates: {
+          "3HRS": fare3hrs,
+          "6HRS": fare6hrs,
+          "1DAY": fare1day,
+          "7DAYS": fare7days,
+          "30DAYS": fare30days
         }
       };
-      await set(ref(db, `fareRules/${vehicle}`), rule);
-      alert("Fare rule updated successfully!");
-      e.target.reset();
+
+      set(fareRef, data)
+        .then(() => showToast("Fare updated!"))
+        .catch((err) => alert("Failed: " + err));
+    };
+
+    // Load Vehicles
+    const vehicleSelect = document.getElementById("vehicleSelect");
+    const vehicleRef = ref(db, "vehicles");
+    onValue(vehicleRef, (snapshot) => {
+      const data = snapshot.val();
+      vehicleSelect.innerHTML = '<option disabled selected>Select Vehicle</option>';
+      for (const key in data) {
+        const name = data[key].name || key;
+        const option = document.createElement("option");
+        option.value = key;
+        option.textContent = name;
+        vehicleSelect.appendChild(option);
+      }
     });
-  }
-
-  window.switchTab = (tab) => {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-    document.getElementById(tab).classList.add('active');
-    event.target.classList.add('active');
-  };
-</script>
-
+  </script>
 </body>
 </html>
