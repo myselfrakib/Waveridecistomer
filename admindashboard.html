@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WaveRide Admin Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -27,9 +27,6 @@
     table td, table th {
       vertical-align: middle;
     }
-    .switch {
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
@@ -45,13 +42,11 @@
   </ul>
 
   <div class="tab-content mt-3">
-    <!-- Overview Tab -->
+    <!-- Overview -->
     <div class="tab-pane fade show active" id="overview">
-      <div class="card mb-4">
+      <div class="card">
         <div class="card-header">Stats</div>
-        <div class="card-body">
-          <canvas id="bookingChart" height="100"></canvas>
-        </div>
+        <div class="card-body"><canvas id="bookingChart" height="100"></canvas></div>
       </div>
     </div>
 
@@ -60,7 +55,7 @@
       <div class="card">
         <div class="card-header">Bookings</div>
         <div class="card-body table-responsive">
-          <table class="table table-striped" id="bookingsTable">
+          <table class="table" id="bookingsTable">
             <thead><tr><th>#</th><th>User</th><th>Vehicle</th><th>Pickup</th><th>Dropoff</th><th>Fare</th><th>Status</th></tr></thead>
             <tbody></tbody>
           </table>
@@ -87,9 +82,18 @@
         <div class="card-header">Add Vehicle</div>
         <div class="card-body">
           <form id="vehicleForm" class="row g-3 mb-4">
-            <div class="col-md-4"><input id="vehicleCategory" class="form-control" placeholder="Category" required></div>
-            <div class="col-md-4"><input id="vehicleModel" class="form-control" placeholder="Model" required></div>
-            <div class="col-md-4"><button class="btn btn-success w-100">Add Vehicle</button></div>
+            <div class="col-md-3">
+              <select id="vehicleCategory" class="form-select" required></select>
+            </div>
+            <div class="col-md-3"><input id="vehicleModel" class="form-control" placeholder="Model" required></div>
+            <div class="col-md-6 row g-2">
+              <div class="col"><input id="fare3" class="form-control" placeholder="3 HRS" required></div>
+              <div class="col"><input id="fare6" class="form-control" placeholder="6 HRS" required></div>
+              <div class="col"><input id="fare24" class="form-control" placeholder="1 DAY" required></div>
+              <div class="col"><input id="fare168" class="form-control" placeholder="7 DAYS" required></div>
+              <div class="col"><input id="fare720" class="form-control" placeholder="30 DAYS" required></div>
+            </div>
+            <div class="col-md-12"><button class="btn btn-success w-100">Add Vehicle + Fare</button></div>
           </form>
           <table class="table" id="vehiclesTable">
             <thead><tr><th>#</th><th>Category</th><th>Model</th><th>Status</th><th>Toggle</th></tr></thead>
@@ -105,11 +109,18 @@
         <div class="card-header">Update Fare</div>
         <div class="card-body">
           <form id="fareForm" class="row g-3">
-            <div class="col-md-3"><input id="fareModel" class="form-control" placeholder="Model" required></div>
-            <div class="col-md-3"><input type="date" id="fareFrom" class="form-control" required></div>
-            <div class="col-md-3"><input type="date" id="fareTo" class="form-control" required></div>
-            <div class="col-md-3"><input id="fareRates" class="form-control" placeholder="3:150,6:250..." required></div>
-            <div class="col-12"><button class="btn btn-primary w-100">Save</button></div>
+            <div class="col-md-4">
+              <select id="fareModel" class="form-select" required></select>
+              <div id="currentFare" class="mt-2 text-muted small"></div>
+            </div>
+            <div class="col-md-4"><input type="date" id="fareFrom" class="form-control" required></div>
+            <div class="col-md-4"><input type="date" id="fareTo" class="form-control" required></div>
+            <div class="col-md-2"><input class="form-control" id="newFare3" placeholder="3 HRS" required></div>
+            <div class="col-md-2"><input class="form-control" id="newFare6" placeholder="6 HRS" required></div>
+            <div class="col-md-2"><input class="form-control" id="newFare24" placeholder="1 DAY" required></div>
+            <div class="col-md-3"><input class="form-control" id="newFare168" placeholder="7 DAYS" required></div>
+            <div class="col-md-3"><input class="form-control" id="newFare720" placeholder="30 DAYS" required></div>
+            <div class="col-md-12"><button class="btn btn-primary w-100">Update Fare</button></div>
           </form>
         </div>
       </div>
@@ -133,118 +144,105 @@
 
   const db = getDatabase(app);
 
-  // Realtime bookings + notify + chart
-  const bookingData = [];
-  onValue(ref(db, "bookings"), (snap) => {
+  // Chart + notify
+  onValue(ref(db, "bookings"), snap => {
     const table = document.querySelector("#bookingsTable tbody");
     table.innerHTML = "";
-    let i = 1;
-    let totalFare = 0;
-    for (let model in snap.val()) {
-      for (let id in snap.val()[model]) {
-        const b = snap.val()[model][id];
-        table.innerHTML += `<tr><td>${i++}</td><td>${b.user}</td><td>${model}</td><td>${b.pickup}</td><td>${b.dropoff}</td><td>${b.fare}</td><td>${b.status}</td></tr>`;
-        bookingData.push(b);
-        totalFare += parseInt(b.fare || 0);
+    let i = 1, total = 0;
+    for (let v in snap.val()) {
+      for (let b in snap.val()[v]) {
+        const x = snap.val()[v][b];
+        table.innerHTML += `<tr><td>${i++}</td><td>${x.user}</td><td>${v}</td><td>${x.pickup}</td><td>${x.dropoff}</td><td>${x.fare}</td><td>${x.status}</td></tr>`;
+        total += parseInt(x.fare || 0);
       }
     }
-    renderChart(bookingData.length, totalFare);
-    if (bookingData.length > 0) {
-      alert(`🔔 New booking received: ${bookingData[bookingData.length - 1].user}`);
-    }
+    new Chart(document.getElementById("bookingChart"), {
+      type: "bar", data: { labels: ["Bookings", "Revenue"], datasets: [{ data: [i - 1, total], backgroundColor: ["#0d6efd", "#28a745"] }] }, options: { plugins: { legend: { display: false } } }
+    });
   });
 
-  // Users
   onValue(ref(db, "users"), snap => {
     const table = document.querySelector("#usersTable tbody");
-    table.innerHTML = "";
-    let i = 1;
+    table.innerHTML = ""; let i = 1;
     for (let id in snap.val()) {
       const u = snap.val()[id];
-      table.innerHTML += `<tr><td>${i++}</td><td>${u.name || 'N/A'}</td><td>${u.email || 'N/A'}</td><td>${u.phone || 'N/A'}</td></tr>`;
+      table.innerHTML += `<tr><td>${i++}</td><td>${u.name || ''}</td><td>${u.email || ''}</td><td>${u.phone || ''}</td></tr>`;
     }
   });
 
-  // Vehicles
+  const vehicleDropdown = document.getElementById("vehicleCategory");
   onValue(ref(db, "vehicles"), snap => {
+    vehicleDropdown.innerHTML = '';
+    for (let cat in snap.val()) {
+      vehicleDropdown.innerHTML += `<option value="${cat}">${cat}</option>`;
+    }
     const table = document.querySelector("#vehiclesTable tbody");
-    table.innerHTML = "";
-    let i = 1;
-    for (let category in snap.val()) {
-      for (let model in snap.val()[category]) {
-        const vehicle = snap.val()[category][model];
-        table.innerHTML += `
-          <tr><td>${i++}</td><td>${category}</td><td>${model}</td><td>${vehicle.status}</td>
-          <td><button class="btn btn-sm ${vehicle.status === 'available' ? 'btn-danger' : 'btn-success'}"
-          onclick="toggleStatus('${category}','${model}','${vehicle.status}')">
-          ${vehicle.status === 'available' ? 'Disable' : 'Enable'}</button></td></tr>`;
+    table.innerHTML = ""; let i = 1;
+    for (let cat in snap.val()) {
+      for (let model in snap.val()[cat]) {
+        const v = snap.val()[cat][model];
+        table.innerHTML += `<tr><td>${i++}</td><td>${cat}</td><td>${model}</td><td>${v.status}</td><td><button class="btn btn-sm ${v.status === 'available' ? 'btn-danger' : 'btn-success'}" onclick="toggleStatus('${cat}','${model}','${v.status}')">${v.status === 'available' ? 'Disable' : 'Enable'}</button></td></tr>`;
       }
     }
   });
 
-  // Toggle vehicle
-  window.toggleStatus = (category, model, status) => {
+  window.toggleStatus = (cat, model, status) => {
     const newStatus = status === "available" ? "disabled" : "available";
-    update(ref(db, `vehicles/${category}/${model}`), { status: newStatus });
+    update(ref(db, `vehicles/${cat}/${model}`), { status: newStatus });
   };
 
-  // Add vehicle
-  document.getElementById("vehicleForm").addEventListener("submit", async (e) => {
+  document.getElementById("vehicleForm").addEventListener("submit", async e => {
     e.preventDefault();
-    const cat = vehicleCategory.value.trim();
-    const model = vehicleModel.value.trim();
+    const cat = vehicleCategory.value;
+    const model = vehicleModel.value;
+    const durations = {
+      3: parseInt(fare3.value), 6: parseInt(fare6.value), 24: parseInt(fare24.value),
+      168: parseInt(fare168.value), 720: parseInt(fare720.value)
+    };
     await set(ref(db, `vehicles/${cat}/${model}`), { status: "available" });
-    const snap = await get(ref(db, `vehicles/${cat}`));
-    for (let m in snap.val()) {
-      if (m !== model) {
-        const fare = await get(ref(db, `fareRules/${m}`));
-        if (fare.exists()) await set(ref(db, `fareRules/${model}`), fare.val());
-        break;
+    await set(ref(db, `fareRules/${model}`), {
+      from: new Date().toISOString().split("T")[0],
+      to: "2030-01-01", durations
+    });
+    alert("Vehicle + Fare Added");
+    e.target.reset();
+  });
+
+  onValue(ref(db, "vehicles"), snap => {
+    const fareModel = document.getElementById("fareModel");
+    fareModel.innerHTML = `<option value="">Select</option>`;
+    for (let cat in snap.val()) {
+      for (let model in snap.val()[cat]) {
+        fareModel.innerHTML += `<option value="${model}">${model}</option>`;
       }
     }
-    alert("Vehicle added");
-    e.target.reset();
   });
 
-  // Fare rule update
+  document.getElementById("fareModel").addEventListener("change", async (e) => {
+    const model = e.target.value;
+    const preview = document.getElementById("currentFare");
+    const snap = await get(ref(db, `fareRules/${model}`));
+    if (snap.exists()) {
+      const f = snap.val();
+      preview.innerHTML = `Current: 3HRS ₹${f.durations[3]}, 6HRS ₹${f.durations[6]}, 1DAY ₹${f.durations[24]}, 7D ₹${f.durations[168]}, 30D ₹${f.durations[720]}`;
+    } else {
+      preview.innerHTML = "No existing fare.";
+    }
+  });
+
   document.getElementById("fareForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const model = fareModel.value.trim();
-    const from = fareFrom.value;
-    const to = fareTo.value;
-    const durations = {};
-    fareRates.value.split(",").forEach(pair => {
-      const [k, v] = pair.split(":");
-      durations[k.trim()] = parseInt(v.trim());
-    });
+    const model = fareModel.value, from = fareFrom.value, to = fareTo.value;
+    const durations = {
+      3: parseInt(newFare3.value), 6: parseInt(newFare6.value),
+      24: parseInt(newFare24.value), 168: parseInt(newFare168.value),
+      720: parseInt(newFare720.value)
+    };
     await set(ref(db, `fareRules/${model}`), { from, to, durations });
-    alert("Fare updated!");
-    e.target.reset();
+    alert("Fare Updated");
+    e.target.reset(); document.getElementById("currentFare").innerText = "";
   });
-
-  // Chart rendering
-  function renderChart(totalBookings, totalFare) {
-    const ctx = document.getElementById("bookingChart").getContext("2d");
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Bookings', 'Revenue'],
-        datasets: [{
-          label: 'Stats',
-          data: [totalBookings, totalFare],
-          backgroundColor: ['#0d6efd', '#28a745']
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: false }
-        }
-      }
-    });
-  }
 </script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
