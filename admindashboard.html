@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WaveRide Admin Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -18,15 +18,11 @@
     .card-header {
       background-color: #0d6efd;
       color: white;
-      border-top-left-radius: 1rem;
-      border-top-right-radius: 1rem;
     }
-    h3 {
-      font-weight: 600;
-    }
-    .table-responsive {
-      max-height: 400px;
-      overflow-y: auto;
+    .logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
     }
     .nav-tabs .nav-link.active {
       background-color: #0d6efd;
@@ -35,201 +31,237 @@
   </style>
 </head>
 <body>
-  <div class="container py-5">
-    <div class="text-center mb-4">
-      <h1 class="text-primary">WaveRide Admin Dashboard</h1>
-      <p class="text-muted">Manage Bookings, Users, Vehicles, and Fares</p>
+
+<div class="container py-4 position-relative">
+  <button class="btn btn-danger logout-btn" onclick="logout()">Logout <i class="fas fa-sign-out-alt"></i></button>
+
+  <div class="text-center mb-4">
+    <h1 class="text-primary">WaveRide Admin Dashboard</h1>
+    <p class="text-muted">Manage Bookings, Users, Vehicles, and Fares</p>
+  </div>
+
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#bookings">Bookings</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#users">Users</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vehicles">Vehicles</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#fare">Fare Management</button></li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- Bookings Tab -->
+    <div class="tab-pane fade show active" id="bookings">
+      <div class="card">
+        <div class="card-header">All Bookings</div>
+        <div class="card-body table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Vehicle</th>
+                <th>User</th>
+                <th>Pickup</th>
+                <th>Dropoff</th>
+                <th>Fare</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="bookingsTable"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
-    <ul class="nav nav-tabs mb-3" id="adminTab" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="bookings-tab" data-bs-toggle="tab" data-bs-target="#bookings" type="button" role="tab">Bookings</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">Users</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehicles" type="button" role="tab">Vehicles</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="fare-tab" data-bs-toggle="tab" data-bs-target="#fare" type="button" role="tab">Fare Management</button>
-      </li>
-    </ul>
-
-    <div class="tab-content" id="adminTabContent">
-      <!-- Bookings Tab -->
-      <div class="tab-pane fade show active" id="bookings" role="tabpanel">
-        <div class="card">
-          <div class="card-header">All Bookings</div>
-          <div class="card-body table-responsive">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>Booking ID</th>
-                  <th>User</th>
-                  <th>Vehicle</th>
-                  <th>Pickup</th>
-                  <th>Dropoff</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="bookingsTable"></tbody>
-            </table>
-          </div>
+    <!-- Users Tab -->
+    <div class="tab-pane fade" id="users">
+      <div class="card">
+        <div class="card-header">Registered Users</div>
+        <div class="card-body table-responsive">
+          <table class="table table-striped">
+            <thead><tr><th>User ID</th><th>Name</th><th>Phone</th></tr></thead>
+            <tbody id="usersTable"></tbody>
+          </table>
         </div>
       </div>
+    </div>
 
-      <!-- Users Tab -->
-      <div class="tab-pane fade" id="users" role="tabpanel">
-        <div class="card">
-          <div class="card-header">Registered Users</div>
-          <div class="card-body table-responsive">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>User ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                </tr>
-              </thead>
-              <tbody id="usersTable"></tbody>
-            </table>
-          </div>
+    <!-- Vehicles Tab -->
+    <div class="tab-pane fade" id="vehicles">
+      <div class="card">
+        <div class="card-header">Available Vehicles</div>
+        <div class="card-body table-responsive">
+          <table class="table table-striped">
+            <thead><tr><th>ID</th><th>Type</th><th>Model</th><th>Status</th></tr></thead>
+            <tbody id="vehiclesTable"></tbody>
+          </table>
         </div>
       </div>
+    </div>
 
-      <!-- Vehicles Tab -->
-      <div class="tab-pane fade" id="vehicles" role="tabpanel">
-        <div class="card">
-          <div class="card-header">Available Vehicles</div>
-          <div class="card-body table-responsive">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>Vehicle ID</th>
-                  <th>Type</th>
-                  <th>Model</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="vehiclesTable"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Fare Tab -->
-      <div class="tab-pane fade" id="fare" role="tabpanel">
-        <div class="card">
-          <div class="card-header">Fare Management</div>
-          <div class="card-body">
-            <form id="fareForm">
-              <div class="row mb-3">
-                <div class="col-md-4">
-                  <label class="form-label">Vehicle Type</label>
-                  <select class="form-select" id="fareVehicleType">
-                    <option value="">Select Vehicle</option>
-                  </select>
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label">From Date</label>
-                  <input type="date" class="form-control" id="fareFromDate">
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label">To Date</label>
-                  <input type="date" class="form-control" id="fareToDate">
-                </div>
+    <!-- Fare Management Tab -->
+    <div class="tab-pane fade" id="fare">
+      <div class="card">
+        <div class="card-header">Fare Management</div>
+        <div class="card-body">
+          <form id="fareForm">
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label>Vehicle</label>
+                <select class="form-select" id="fareVehicleType"></select>
               </div>
-              <div class="mb-3">
-                <label class="form-label">New Fare per Hour</label>
-                <input type="number" class="form-control" id="fareAmount" placeholder="Enter new fare">
+              <div class="col-md-4">
+                <label>From Date</label>
+                <input type="date" class="form-control" id="fareFromDate">
               </div>
-              <button type="submit" class="btn btn-primary w-100">Update Fare</button>
-            </form>
-          </div>
+              <div class="col-md-4">
+                <label>To Date</label>
+                <input type="date" class="form-control" id="fareToDate">
+              </div>
+            </div>
+            <label>3HR</label><input type="number" class="form-control mb-2" id="fare3">
+            <label>6HR</label><input type="number" class="form-control mb-2" id="fare6">
+            <label>1DAY</label><input type="number" class="form-control mb-2" id="fare24">
+            <label>7DAYS</label><input type="number" class="form-control mb-2" id="fare168">
+            <label>30DAYS</label><input type="number" class="form-control" id="fare720">
+            <button class="btn btn-primary mt-3 w-100" type="submit">Update Fare</button>
+          </form>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+  import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
-      authDomain: "waveride-bike-rental-service.firebaseapp.com",
-      databaseURL: "https://waveride-bike-rental-service-default-rtdb.firebaseio.com",
-      projectId: "waveride-bike-rental-service",
-      storageBucket: "waveride-bike-rental-service.appspot.com",
-      messagingSenderId: "341920732961",
-      appId: "1:341920732961:web:3967e19131f8984f0f1060",
-      measurementId: "G-59M75TD99E"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
+    authDomain: "waveride-bike-rental-service.firebaseapp.com",
+    databaseURL: "https://waveride-bike-rental-service-default-rtdb.firebaseio.com",
+    projectId: "waveride-bike-rental-service",
+    storageBucket: "waveride-bike-rental-service.appspot.com",
+    messagingSenderId: "341920732961",
+    appId: "1:341920732961:web:3967e19131f8984f0f1060"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth();
 
-    // Load vehicles
-    const vehicleRef = ref(db, 'vehicles');
-    onValue(vehicleRef, (snapshot) => {
-      const data = snapshot.val();
-      const vehiclesTable = document.getElementById('vehiclesTable');
-      const fareVehicleType = document.getElementById('fareVehicleType');
-      vehiclesTable.innerHTML = '';
-      fareVehicleType.innerHTML = '<option value="">Select Vehicle</option>';
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      alert("Login required.");
+      window.location.href = "index.html";
+    } else {
+      const adminsRef = ref(db, "admins");
+      onValue(adminsRef, (snapshot) => {
+        const admins = snapshot.val();
+        let isAdmin = false;
+
+        for (const key in admins) {
+          const a = admins[key];
+          if (a.email === user.email && (a.role === "admin" || a.role === "superadmin")) {
+            isAdmin = true;
+            break;
+          }
+        }
+
+        if (isAdmin) {
+          loadAdminData();
+        } else {
+          alert("Access denied.");
+          window.location.href = "index.html";
+        }
+      }, { onlyOnce: true });
+    }
+  });
+
+  function loadAdminData() {
+    const vehiclesRef = ref(db, "vehicles");
+    const bookingsRef = ref(db, "bookings");
+    const usersRef = ref(db, "users");
+
+    const vehiclesTable = document.getElementById("vehiclesTable");
+    const fareVehicleType = document.getElementById("fareVehicleType");
+    onValue(vehiclesRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      vehiclesTable.innerHTML = "";
+      fareVehicleType.innerHTML = "<option value=''>Select Vehicle</option>";
       for (let id in data) {
-        let v = data[id];
+        const v = data[id];
         vehiclesTable.innerHTML += `<tr><td>${id}</td><td>${v.type}</td><td>${v.model}</td><td>${v.status}</td></tr>`;
-        fareVehicleType.innerHTML += `<option value="${id}">${v.type} - ${v.model}</option>`;
+        fareVehicleType.innerHTML += `<option value="${id}">${v.model}</option>`;
       }
     });
 
-    // Load bookings
-    const bookingRef = ref(db, 'bookings');
-    onValue(bookingRef, (snapshot) => {
-      const data = snapshot.val();
-      const bookingsTable = document.getElementById('bookingsTable');
-      bookingsTable.innerHTML = '';
-      for (let id in data) {
-        let b = data[id];
-        bookingsTable.innerHTML += `<tr><td>${id}</td><td>${b.userId || 'N/A'}</td><td>${b.vehicleId || 'N/A'}</td><td>${b.pickup}</td><td>${b.dropoff}</td><td>${b.date}</td><td>${b.status}</td></tr>`;
+    const bookingsTable = document.getElementById("bookingsTable");
+    onValue(bookingsRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      bookingsTable.innerHTML = "";
+      for (let vehicle in data) {
+        for (let bid in data[vehicle]) {
+          const b = data[vehicle][bid];
+          bookingsTable.innerHTML += `
+            <tr>
+              <td>${vehicle}</td>
+              <td>${b.user}</td>
+              <td>${new Date(b.pickup).toLocaleString()}</td>
+              <td>${new Date(b.dropoff).toLocaleString()}</td>
+              <td>₹${b.fare}</td>
+              <td>${b.status}</td>
+              <td><button class="btn btn-sm btn-danger" onclick="cancelBooking('${vehicle}', '${bid}')">Cancel</button></td>
+            </tr>`;
+        }
       }
     });
 
-    // Load users
-    const userRef = ref(db, 'users');
-    onValue(userRef, (snapshot) => {
-      const data = snapshot.val();
-      const usersTable = document.getElementById('usersTable');
-      usersTable.innerHTML = '';
-      for (let id in data) {
-        let u = data[id];
-        usersTable.innerHTML += `<tr><td>${id}</td><td>${u.name || 'N/A'}</td><td>${u.email || 'N/A'}</td><td>${u.phone || 'N/A'}</td></tr>`;
+    const usersTable = document.getElementById("usersTable");
+    onValue(usersRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      usersTable.innerHTML = "";
+      for (let uid in data) {
+        const u = data[uid];
+        usersTable.innerHTML += `<tr><td>${uid}</td><td>${u.name || "-"}</td><td>${u.phone || "-"}</td></tr>`;
       }
     });
 
-    // Fare update logic
-    const fareForm = document.getElementById('fareForm');
-    fareForm.addEventListener('submit', (e) => {
+    document.getElementById("fareForm").addEventListener("submit", (e) => {
       e.preventDefault();
-      const vehicleId = document.getElementById('fareVehicleType').value;
-      const from = document.getElementById('fareFromDate').value;
-      const to = document.getElementById('fareToDate').value;
-      const newFare = document.getElementById('fareAmount').value;
-      if (!vehicleId || !from || !to || !newFare) return alert('Please fill in all fields.');
-      const updatePath = `fareRules/${vehicleId}`;
-      update(ref(db, updatePath), {
-        fromDate: from,
-        toDate: to,
-        fare: newFare
-      }).then(() => {
-        alert('Fare updated successfully!');
-      }).catch(err => alert('Error updating fare: ' + err));
+      const id = document.getElementById("fareVehicleType").value;
+      const from = document.getElementById("fareFromDate").value;
+      const to = document.getElementById("fareToDate").value;
+      const fareData = {
+        from,
+        to,
+        durations: {
+          3: Number(document.getElementById("fare3").value),
+          6: Number(document.getElementById("fare6").value),
+          24: Number(document.getElementById("fare24").value),
+          168: Number(document.getElementById("fare168").value),
+          720: Number(document.getElementById("fare720").value)
+        }
+      };
+      update(ref(db, `fareRules/${id}`), fareData)
+        .then(() => alert("Fare updated"))
+        .catch(err => alert("Error: " + err.message));
     });
-  </script>
+  }
+
+  window.cancelBooking = function (vehicle, bid) {
+    if (confirm("Cancel this booking?")) {
+      remove(ref(db, `bookings/${vehicle}/${bid}`))
+        .then(() => alert("Booking cancelled"))
+        .catch(err => alert("Error: " + err.message));
+    }
+  };
+
+  window.logout = function () {
+    signOut(auth).then(() => {
+      window.location.href = "index.html";
+    });
+  };
+</script>
 </body>
 </html>
