@@ -9,13 +9,29 @@
     body {
       background: linear-gradient(to right, #4facfe, #00f2fe);
       font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .navbar {
+      background: #fff;
+      padding: 10px 20px;
+      border-bottom: 1px solid #ccc;
+    }
+    .navbar a {
+      margin-right: 15px;
+      color: #007bff;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .navbar a:hover {
+      text-decoration: underline;
     }
     .container {
       max-width: 600px;
       background: white;
       padding: 20px;
       border-radius: 15px;
-      margin-top: 30px;
+      margin: 20px auto;
       box-shadow: 0 8px 16px rgba(0,0,0,0.1);
     }
     .bike-item {
@@ -31,8 +47,17 @@
 </head>
 <body>
 
+<!-- Simple Navbar -->
+<div class="navbar">
+  <a href="index.html">Home</a>
+  <a href="mybookings.html">My Bookings</a>
+  <a href="profile.html">Profile</a>
+  <a href="#" onclick="logout()">Logout</a>
+</div>
+
+<!-- Booking Form -->
 <div class="container">
-  <h2 class="text-center">WaveRide Booking</h2>
+  <h2 class="text-center">Book Your Ride</h2>
   <form id="bookingForm">
     <label for="category">Select Category</label>
     <select id="category" class="form-select" required>
@@ -63,7 +88,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
   import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
@@ -79,6 +104,16 @@
   const db = getDatabase(app);
   const auth = getAuth();
 
+  // Logout function
+  window.logout = function () {
+    signOut(auth).then(() => {
+      window.location.href = "index.html";
+    });
+  };
+
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("pickupDate").min = today;
+
   const pickupTime = document.getElementById("pickupTime");
   for (let hour = 8; hour <= 23; hour++) {
     ["00", "30"].forEach(min => {
@@ -92,9 +127,6 @@
       pickupTime.appendChild(option);
     });
   }
-
-  const today = new Date().toISOString().split("T")[0];
-  document.getElementById("pickupDate").min = today;
 
   const categorySelect = document.getElementById("category");
   onValue(ref(db, "vehicles"), snapshot => {
@@ -199,5 +231,6 @@
     });
   };
 </script>
+
 </body>
 </html>
