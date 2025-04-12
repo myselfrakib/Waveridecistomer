@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WaveRide Admin Dashboard</title>
-  <script src="https://kit.fontawesome.com/a2d9d6b3f3.js" crossorigin="anonymous"></script>
+  <!-- ✅ Fixed Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap">
   <style>
     body {
@@ -129,6 +130,13 @@
 </head>
 <body>
 
+<nav class="topbar">
+  <a href="index.html"><i class="fas fa-home"></i><br>Home</a>
+  <a href="booking.html"><i class="fas fa-motorcycle"></i><br>Book</a>
+  <a href="mybookings.html"><i class="fas fa-list"></i><br>Bookings</a>
+  <a href="profile.html"><i class="fas fa-user"></i><br>Profile</a>
+</nav>
+
 <div class="container">
   <h2>WaveRide Admin Dashboard</h2>
 
@@ -170,6 +178,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
   import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
@@ -183,76 +192,94 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+  const auth = getAuth();
 
-  const bookingsDiv = document.getElementById("userBookings");
-  const userListDiv = document.getElementById("userList");
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      alert("You must be logged in to access the admin panel.");
+      window.location.href = "login.html";
+    } else {
+      const roleRef = ref(db, `users/${user.uid}/role`);
+      onValue(roleRef, snapshot => {
+        const role = snapshot.val();
+        if (role !== "admin") {
+          alert("Access denied. Admins only.");
+          window.location.href = "index.html";
+        } else {
+          loadAdminContent();
+        }
+      }, { onlyOnce: true });
+    }
+  });
 
-  // Booking Viewer
-  onValue(ref(db, 'bookings'), snapshot => {
-    let html = '<table><tr><th>Vehicle</th><th>User</th><th>Pickup</th><th>Dropoff</th><th>Fare</th><th>Status</th></tr>';
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      for (const vehicle in data) {
-        for (const bookingId in data[vehicle]) {
-          const booking = data[vehicle][bookingId];
+  function loadAdminContent() {
+    const bookingsDiv = document.getElementById("userBookings");
+    const userListDiv = document.getElementById("userList");
+
+    onValue(ref(db, 'bookings'), snapshot => {
+      let html = '<table><tr><th>Vehicle</th><th>User</th><th>Pickup</th><th>Dropoff</th><th>Fare</th><th>Status</th></tr>';
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        for (const vehicle in data) {
+          for (const bookingId in data[vehicle]) {
+            const booking = data[vehicle][bookingId];
+            html += `<tr>
+              <td>${vehicle}</td>
+              <td>${booking.user}</td>
+              <td>${new Date(booking.pickup).toLocaleString()}</td>
+              <td>${new Date(booking.dropoff).toLocaleString()}</td>
+              <td>₹${booking.fare}</td>
+              <td>${booking.status}</td>
+            </tr>`;
+          }
+        }
+      } else {
+        html += "<tr><td colspan='6'>No bookings found</td></tr>";
+      }
+      html += '</table>';
+      bookingsDiv.innerHTML = html;
+    });
+
+    onValue(ref(db, 'users'), snapshot => {
+      let html = '<table><tr><th>User ID</th><th>Name</th><th>Phone</th><th>Role</th></tr>';
+      if (snapshot.exists()) {
+        const users = snapshot.val();
+        for (const uid in users) {
+          const user = users[uid];
           html += `<tr>
-            <td>${vehicle}</td>
-            <td>${booking.user}</td>
-            <td>${new Date(booking.pickup).toLocaleString()}</td>
-            <td>${new Date(booking.dropoff).toLocaleString()}</td>
-            <td>₹${booking.fare}</td>
-            <td>${booking.status}</td>
+            <td>${uid}</td>
+            <td>${user.name || '-'}</td>
+            <td>${user.phone || '-'}</td>
+            <td>${user.role || 'user'}</td>
           </tr>`;
         }
+      } else {
+        html += "<tr><td colspan='4'>No users found</td></tr>";
       }
-    } else {
-      html += "<tr><td colspan='6'>No bookings found</td></tr>";
-    }
-    html += '</table>';
-    bookingsDiv.innerHTML = html;
-  });
+      html += '</table>';
+      userListDiv.innerHTML = html;
+    });
 
-  // Fare Rule Form
-  document.getElementById("fareForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const vehicle = document.getElementById("vehicle").value.trim();
-    const rule = {
-      from: document.getElementById("from").value,
-      to: document.getElementById("to").value,
-      durations: {
-        "3": parseInt(document.getElementById("fare3").value),
-        "6": parseInt(document.getElementById("fare6").value),
-        "24": parseInt(document.getElementById("fare24").value),
-        "168": parseInt(document.getElementById("fare168").value),
-        "720": parseInt(document.getElementById("fare720").value)
-      }
-    };
-    await set(ref(db, `fareRules/${vehicle}`), rule);
-    alert("Fare rule updated successfully!");
-    e.target.reset();
-  });
+    document.getElementById("fareForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const vehicle = document.getElementById("vehicle").value.trim();
+      const rule = {
+        from: document.getElementById("from").value,
+        to: document.getElementById("to").value,
+        durations: {
+          "3": parseInt(document.getElementById("fare3").value),
+          "6": parseInt(document.getElementById("fare6").value),
+          "24": parseInt(document.getElementById("fare24").value),
+          "168": parseInt(document.getElementById("fare168").value),
+          "720": parseInt(document.getElementById("fare720").value)
+        }
+      };
+      await set(ref(db, `fareRules/${vehicle}`), rule);
+      alert("Fare rule updated successfully!");
+      e.target.reset();
+    });
+  }
 
-  // Users Viewer
-  onValue(ref(db, 'users'), snapshot => {
-    let html = '<table><tr><th>User ID</th><th>Name</th><th>Phone</th></tr>';
-    if (snapshot.exists()) {
-      const users = snapshot.val();
-      for (const uid in users) {
-        const user = users[uid];
-        html += `<tr>
-          <td>${uid}</td>
-          <td>${user.name || '-'}</td>
-          <td>${user.phone || '-'}</td>
-        </tr>`;
-      }
-    } else {
-      html += "<tr><td colspan='3'>No users found</td></tr>";
-    }
-    html += '</table>';
-    userListDiv.innerHTML = html;
-  });
-
-  // Tab Switching
   window.switchTab = (tab) => {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
