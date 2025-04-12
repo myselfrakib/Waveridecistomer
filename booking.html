@@ -32,10 +32,12 @@
 <body>
 
 <div class="container">
-  <h2 class="text-center">Book Your Ride</h2>
+  <h2 class="text-center">WaveRide Booking</h2>
   <form id="bookingForm">
     <label for="category">Select Category</label>
-    <select id="category" class="form-select" required></select>
+    <select id="category" class="form-select" required>
+      <option value="">Loading categories...</option>
+    </select>
 
     <label for="pickupDate">Pickup Date</label>
     <input type="date" id="pickupDate" class="form-control" required>
@@ -77,9 +79,6 @@
   const db = getDatabase(app);
   const auth = getAuth();
 
-  const today = new Date().toISOString().split("T")[0];
-  document.getElementById("pickupDate").min = today;
-
   const pickupTime = document.getElementById("pickupTime");
   for (let hour = 8; hour <= 23; hour++) {
     ["00", "30"].forEach(min => {
@@ -93,6 +92,9 @@
       pickupTime.appendChild(option);
     });
   }
+
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("pickupDate").min = today;
 
   const categorySelect = document.getElementById("category");
   onValue(ref(db, "vehicles"), snapshot => {
