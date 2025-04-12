@@ -12,7 +12,7 @@
     }
     .card {
       border-radius: 1rem;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
     .card-header {
       background-color: #0d6efd;
@@ -49,16 +49,7 @@
         <div class="card-body table-responsive">
           <table class="table table-striped">
             <thead>
-              <tr>
-                <th>SL</th>
-                <th>Vehicle</th>
-                <th>User</th>
-                <th>Pickup</th>
-                <th>Dropoff</th>
-                <th>Fare</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
+              <tr><th>SL</th><th>Vehicle</th><th>User</th><th>Pickup</th><th>Dropoff</th><th>Fare</th><th>Status</th><th>Action</th></tr>
             </thead>
             <tbody id="bookingsTable"></tbody>
           </table>
@@ -73,14 +64,7 @@
         <div class="card-body table-responsive">
           <table class="table table-striped">
             <thead>
-              <tr>
-                <th>SL</th>
-                <th>User ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Action</th>
-              </tr>
+              <tr><th>SL</th><th>User ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Action</th></tr>
             </thead>
             <tbody id="usersTable"></tbody>
           </table>
@@ -116,10 +100,7 @@
               </div>
             </div>
             <select id="vehicleCategory" class="form-select mb-3" required>
-              <option value="">Select Category</option>
-              <option value="scooter">Scooter</option>
-              <option value="under150cc">Bikes Under 150cc</option>
-              <option value="premium">Premium Bikes</option>
+              <option value="">Loading categories...</option>
             </select>
             <button type="submit" class="btn btn-primary w-100">Add Vehicle</button>
           </form>
@@ -166,11 +147,12 @@
   }
 
   const bookingsTable = document.getElementById("bookingsTable");
-  const vehiclesTable = document.getElementById("vehiclesTable");
   const usersTable = document.getElementById("usersTable");
+  const vehiclesTable = document.getElementById("vehiclesTable");
+  const vehicleCategory = document.getElementById("vehicleCategory");
   const addVehicleForm = document.getElementById("addVehicleForm");
 
-  // Load Bookings
+  // Bookings
   onValue(ref(db, "bookings"), (snapshot) => {
     const data = snapshot.val() || {};
     bookingsTable.innerHTML = "";
@@ -193,7 +175,7 @@
     }
   });
 
-  // Load Users
+  // Users
   onValue(ref(db, "users"), (snapshot) => {
     const data = snapshot.val() || {};
     usersTable.innerHTML = "";
@@ -212,51 +194,43 @@
     }
   });
 
-  // Load Vehicles
+  // Vehicles & dynamic categories
   onValue(ref(db, "vehicles"), (snapshot) => {
     const data = snapshot.val() || {};
     vehiclesTable.innerHTML = "";
+    const categories = new Set();
     for (const id in data) {
       const v = data[id];
-      vehiclesTable.innerHTML += `
-        <tr>
-          <td>${id}</td>
-          <td>${v.model}</td>
-          <td>${v.status}</td>
-          <td>${v.category || '-'}</td>
-        </tr>`;
+      vehiclesTable.innerHTML += `<tr><td>${id}</td><td>${v.model}</td><td>${v.status}</td><td>${v.category || '-'}</td></tr>`;
+      if (v.category) categories.add(v.category);
     }
+    vehicleCategory.innerHTML = '<option value="">Select Category</option>';
+    categories.forEach(cat => {
+      vehicleCategory.innerHTML += `<option value="${cat}">${cat}</option>`;
+    });
   });
 
-  // Add Vehicle
   addVehicleForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const id = document.getElementById("vehicleId").value.trim();
     const model = document.getElementById("vehicleModel").value.trim();
     const status = document.getElementById("vehicleStatus").value;
-    const category = document.getElementById("vehicleCategory").value;
+    const category = vehicleCategory.value;
 
     set(ref(db, `vehicles/${id}`), {
-      model,
-      status,
-      category,
-      type: category
+      model, status, category, type: category
     }).then(() => {
-      alert("Vehicle added successfully!");
+      alert("Vehicle added!");
       addVehicleForm.reset();
-    }).catch(err => {
-      alert("Error adding vehicle: " + err.message);
     });
   });
 
-  // Delete booking
   window.deleteBooking = function(vehicle, bookingId) {
     if (confirm("Delete this booking?")) {
       remove(ref(db, `bookings/${vehicle}/${bookingId}`));
     }
   };
 
-  // Delete user
   window.deleteUser = function(userId) {
     if (confirm("Delete this user?")) {
       remove(ref(db, `users/${userId}`));
