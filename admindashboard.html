@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WaveRide Admin Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       background: linear-gradient(to right, #3f87a6, #ebf8e1);
@@ -26,39 +27,53 @@
     table td, table th {
       vertical-align: middle;
     }
+    .switch {
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 <div class="container py-4">
   <h2 class="text-center text-primary mb-4">WaveRide Admin Dashboard</h2>
 
-  <ul class="nav nav-tabs" id="adminTab" role="tablist">
-    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#bookings">Bookings</a></li>
+  <ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#overview">Overview</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#bookings">Bookings</a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#users">Users</a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#vehicles">Vehicles</a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#farerules">Fare Rules</a></li>
   </ul>
 
   <div class="tab-content mt-3">
-    <!-- Bookings Tab -->
-    <div class="tab-pane fade show active" id="bookings">
+    <!-- Overview Tab -->
+    <div class="tab-pane fade show active" id="overview">
+      <div class="card mb-4">
+        <div class="card-header">Stats</div>
+        <div class="card-body">
+          <canvas id="bookingChart" height="100"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bookings -->
+    <div class="tab-pane fade" id="bookings">
       <div class="card">
-        <div class="card-header">All Bookings</div>
+        <div class="card-header">Bookings</div>
         <div class="card-body table-responsive">
           <table class="table table-striped" id="bookingsTable">
-            <thead><tr><th>#</th><th>User</th><th>Vehicle</th><th>Pickup</th><th>Dropoff</th><th>Status</th></tr></thead>
+            <thead><tr><th>#</th><th>User</th><th>Vehicle</th><th>Pickup</th><th>Dropoff</th><th>Fare</th><th>Status</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- Users Tab -->
+    <!-- Users -->
     <div class="tab-pane fade" id="users">
       <div class="card">
-        <div class="card-header">Registered Users</div>
+        <div class="card-header">Users</div>
         <div class="card-body table-responsive">
-          <table class="table table-striped" id="usersTable">
+          <table class="table" id="usersTable">
             <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th></tr></thead>
             <tbody></tbody>
           </table>
@@ -66,51 +81,35 @@
       </div>
     </div>
 
-    <!-- Vehicles Tab -->
+    <!-- Vehicles -->
     <div class="tab-pane fade" id="vehicles">
       <div class="card">
-        <div class="card-header">Vehicles</div>
+        <div class="card-header">Add Vehicle</div>
         <div class="card-body">
-          <form id="vehicleForm" class="row g-3">
-            <div class="col-md-4">
-              <input type="text" id="vehicleCategory" class="form-control" placeholder="Category (e.g., Scooter)" required>
-            </div>
-            <div class="col-md-4">
-              <input type="text" id="vehicleModel" class="form-control" placeholder="Model Name" required>
-            </div>
-            <div class="col-md-4">
-              <button type="submit" class="btn btn-success w-100">Add Vehicle</button>
-            </div>
+          <form id="vehicleForm" class="row g-3 mb-4">
+            <div class="col-md-4"><input id="vehicleCategory" class="form-control" placeholder="Category" required></div>
+            <div class="col-md-4"><input id="vehicleModel" class="form-control" placeholder="Model" required></div>
+            <div class="col-md-4"><button class="btn btn-success w-100">Add Vehicle</button></div>
           </form>
-          <table class="table mt-4" id="vehiclesTable">
-            <thead><tr><th>#</th><th>Category</th><th>Model</th><th>Status</th></tr></thead>
+          <table class="table" id="vehiclesTable">
+            <thead><tr><th>#</th><th>Category</th><th>Model</th><th>Status</th><th>Toggle</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- Fare Rules Tab -->
+    <!-- Fare Rules -->
     <div class="tab-pane fade" id="farerules">
       <div class="card">
-        <div class="card-header">Manage Fare Rules</div>
+        <div class="card-header">Update Fare</div>
         <div class="card-body">
           <form id="fareForm" class="row g-3">
-            <div class="col-md-3">
-              <input type="text" id="fareModel" class="form-control" placeholder="Vehicle Model" required>
-            </div>
-            <div class="col-md-3">
-              <input type="date" id="fareFrom" class="form-control" required>
-            </div>
-            <div class="col-md-3">
-              <input type="date" id="fareTo" class="form-control" required>
-            </div>
-            <div class="col-md-3">
-              <input type="text" id="fareRates" class="form-control" placeholder="e.g. 3:150,6:250,24:450" required>
-            </div>
-            <div class="col-12">
-              <button class="btn btn-primary w-100">Update Fare</button>
-            </div>
+            <div class="col-md-3"><input id="fareModel" class="form-control" placeholder="Model" required></div>
+            <div class="col-md-3"><input type="date" id="fareFrom" class="form-control" required></div>
+            <div class="col-md-3"><input type="date" id="fareTo" class="form-control" required></div>
+            <div class="col-md-3"><input id="fareRates" class="form-control" placeholder="3:150,6:250..." required></div>
+            <div class="col-12"><button class="btn btn-primary w-100">Save</button></div>
           </form>
         </div>
       </div>
@@ -120,7 +119,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getDatabase, ref, onValue, push, set, update, get } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+  import { getDatabase, ref, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
   const app = initializeApp({
     apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
@@ -134,16 +133,24 @@
 
   const db = getDatabase(app);
 
-  // Bookings
-  onValue(ref(db, "bookings"), snap => {
+  // Realtime bookings + notify + chart
+  const bookingData = [];
+  onValue(ref(db, "bookings"), (snap) => {
     const table = document.querySelector("#bookingsTable tbody");
     table.innerHTML = "";
-    let count = 1;
+    let i = 1;
+    let totalFare = 0;
     for (let model in snap.val()) {
       for (let id in snap.val()[model]) {
         const b = snap.val()[model][id];
-        table.innerHTML += `<tr><td>${count++}</td><td>${b.user}</td><td>${model}</td><td>${b.pickup}</td><td>${b.dropoff}</td><td>${b.status}</td></tr>`;
+        table.innerHTML += `<tr><td>${i++}</td><td>${b.user}</td><td>${model}</td><td>${b.pickup}</td><td>${b.dropoff}</td><td>${b.fare}</td><td>${b.status}</td></tr>`;
+        bookingData.push(b);
+        totalFare += parseInt(b.fare || 0);
       }
+    }
+    renderChart(bookingData.length, totalFare);
+    if (bookingData.length > 0) {
+      alert(`🔔 New booking received: ${bookingData[bookingData.length - 1].user}`);
     }
   });
 
@@ -164,60 +171,78 @@
     table.innerHTML = "";
     let i = 1;
     for (let category in snap.val()) {
-      const group = snap.val()[category];
-      for (let model in group) {
-        const vehicle = group[model];
-        table.innerHTML += `<tr><td>${i++}</td><td>${category}</td><td>${model}</td><td>${vehicle.status}</td></tr>`;
+      for (let model in snap.val()[category]) {
+        const vehicle = snap.val()[category][model];
+        table.innerHTML += `
+          <tr><td>${i++}</td><td>${category}</td><td>${model}</td><td>${vehicle.status}</td>
+          <td><button class="btn btn-sm ${vehicle.status === 'available' ? 'btn-danger' : 'btn-success'}"
+          onclick="toggleStatus('${category}','${model}','${vehicle.status}')">
+          ${vehicle.status === 'available' ? 'Disable' : 'Enable'}</button></td></tr>`;
       }
     }
   });
 
-  // Add vehicle + clone fare rule
+  // Toggle vehicle
+  window.toggleStatus = (category, model, status) => {
+    const newStatus = status === "available" ? "disabled" : "available";
+    update(ref(db, `vehicles/${category}/${model}`), { status: newStatus });
+  };
+
+  // Add vehicle
   document.getElementById("vehicleForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const cat = document.getElementById("vehicleCategory").value.trim();
-    const model = document.getElementById("vehicleModel").value.trim();
-
-    if (!cat || !model) return alert("All fields required");
-
+    const cat = vehicleCategory.value.trim();
+    const model = vehicleModel.value.trim();
     await set(ref(db, `vehicles/${cat}/${model}`), { status: "available" });
-
-    const snapshot = await get(ref(db, `vehicles/${cat}`));
-    for (let m in snapshot.val()) {
+    const snap = await get(ref(db, `vehicles/${cat}`));
+    for (let m in snap.val()) {
       if (m !== model) {
-        const existingFare = await get(ref(db, `fareRules/${m}`));
-        if (existingFare.exists()) {
-          await set(ref(db, `fareRules/${model}`), existingFare.val());
-          break;
-        }
+        const fare = await get(ref(db, `fareRules/${m}`));
+        if (fare.exists()) await set(ref(db, `fareRules/${model}`), fare.val());
+        break;
       }
     }
-
-    alert("Vehicle added & fareRules copied (if found)");
+    alert("Vehicle added");
     e.target.reset();
   });
 
-  // Update fare rule
+  // Fare rule update
   document.getElementById("fareForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const model = document.getElementById("fareModel").value.trim();
-    const from = document.getElementById("fareFrom").value;
-    const to = document.getElementById("fareTo").value;
-    const rawRates = document.getElementById("fareRates").value;
-
+    const model = fareModel.value.trim();
+    const from = fareFrom.value;
+    const to = fareTo.value;
     const durations = {};
-    rawRates.split(",").forEach(pair => {
-      const [hrs, val] = pair.split(":");
-      durations[hrs.trim()] = parseInt(val.trim());
+    fareRates.value.split(",").forEach(pair => {
+      const [k, v] = pair.split(":");
+      durations[k.trim()] = parseInt(v.trim());
     });
-
-    await set(ref(db, `fareRules/${model}`), {
-      from, to, durations
-    });
-
-    alert("Fare updated successfully.");
+    await set(ref(db, `fareRules/${model}`), { from, to, durations });
+    alert("Fare updated!");
     e.target.reset();
   });
+
+  // Chart rendering
+  function renderChart(totalBookings, totalFare) {
+    const ctx = document.getElementById("bookingChart").getContext("2d");
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Bookings', 'Revenue'],
+        datasets: [{
+          label: 'Stats',
+          data: [totalBookings, totalFare],
+          backgroundColor: ['#0d6efd', '#28a745']
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+  }
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
