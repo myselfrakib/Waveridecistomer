@@ -127,7 +127,7 @@
 
   onAuthStateChanged(auth, (user) => {
     if (!user) {
-      window.location.href = "login.html";
+      window.location.href = "index.html";
     } else {
       const uid = user.uid;
 
@@ -168,7 +168,7 @@
   // ✅ Logout
   window.logout = function () {
     signOut(auth).then(() => {
-      window.location.href = "login.html";
+      window.location.href = "index.html";
     });
   };
 </script>
