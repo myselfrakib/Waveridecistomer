@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WaveRide Admin Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
     body {
       background: linear-gradient(to right, #3f87a6, #ebf8e1);
@@ -19,50 +18,46 @@
       background-color: #0d6efd;
       color: white;
     }
+    .nav-tabs .nav-link.active {
+      background-color: #0d6efd;
+      color: white;
+    }
     .logout-btn {
       position: absolute;
       top: 20px;
       right: 20px;
-    }
-    .nav-tabs .nav-link.active {
-      background-color: #0d6efd;
-      color: white;
     }
   </style>
 </head>
 <body>
 
 <div class="container py-4 position-relative">
-  <button class="btn btn-danger logout-btn" onclick="logout()">Logout <i class="fas fa-sign-out-alt"></i></button>
+  <button class="btn btn-danger logout-btn" onclick="logout()">Logout</button>
 
-  <div class="text-center mb-4">
-    <h1 class="text-primary">WaveRide Admin Dashboard</h1>
-    <p class="text-muted">Manage Bookings, Users, Vehicles, and Fares</p>
-  </div>
+  <h1 class="text-center text-primary mb-4">WaveRide Admin Dashboard</h1>
 
   <ul class="nav nav-tabs mb-3">
     <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#bookings">Bookings</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#users">Users</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vehicles">Vehicles</button></li>
-    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#fare">Fare Management</button></li>
   </ul>
 
   <div class="tab-content">
     <!-- Bookings Tab -->
     <div class="tab-pane fade show active" id="bookings">
-      <div class="card">
+      <div class="card mb-4">
         <div class="card-header">All Bookings</div>
         <div class="card-body table-responsive">
           <table class="table table-striped">
             <thead>
               <tr>
+                <th>SL</th>
                 <th>Vehicle</th>
                 <th>User</th>
                 <th>Pickup</th>
                 <th>Dropoff</th>
                 <th>Fare</th>
                 <th>Status</th>
-                <th>Action</th>
               </tr>
             </thead>
             <tbody id="bookingsTable"></tbody>
@@ -73,11 +68,19 @@
 
     <!-- Users Tab -->
     <div class="tab-pane fade" id="users">
-      <div class="card">
-        <div class="card-header">Registered Users</div>
+      <div class="card mb-4">
+        <div class="card-header">All Users</div>
         <div class="card-body table-responsive">
           <table class="table table-striped">
-            <thead><tr><th>User ID</th><th>Name</th><th>Phone</th></tr></thead>
+            <thead>
+              <tr>
+                <th>SL</th>
+                <th>User ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+              </tr>
+            </thead>
             <tbody id="usersTable"></tbody>
           </table>
         </div>
@@ -86,43 +89,44 @@
 
     <!-- Vehicles Tab -->
     <div class="tab-pane fade" id="vehicles">
-      <div class="card">
-        <div class="card-header">Available Vehicles</div>
+      <div class="card mb-3">
+        <div class="card-header">All Vehicles</div>
         <div class="card-body table-responsive">
           <table class="table table-striped">
-            <thead><tr><th>ID</th><th>Type</th><th>Model</th><th>Status</th></tr></thead>
+            <thead><tr><th>ID</th><th>Model</th><th>Status</th><th>Category</th></tr></thead>
             <tbody id="vehiclesTable"></tbody>
           </table>
         </div>
       </div>
-    </div>
 
-    <!-- Fare Management Tab -->
-    <div class="tab-pane fade" id="fare">
       <div class="card">
-        <div class="card-header">Fare Management</div>
+        <div class="card-header">Add New Vehicle</div>
         <div class="card-body">
-          <form id="fareForm">
+          <form id="addVehicleForm">
             <div class="row mb-3">
               <div class="col-md-4">
-                <label>Vehicle</label>
-                <select class="form-select" id="fareVehicleType"></select>
+                <input type="text" id="vehicleId" class="form-control" placeholder="Vehicle ID" required>
               </div>
               <div class="col-md-4">
-                <label>From Date</label>
-                <input type="date" class="form-control" id="fareFromDate">
+                <input type="text" id="vehicleModel" class="form-control" placeholder="Model Name" required>
               </div>
               <div class="col-md-4">
-                <label>To Date</label>
-                <input type="date" class="form-control" id="fareToDate">
+                <select id="vehicleStatus" class="form-select" required>
+                  <option value="">Select Status</option>
+                  <option value="available">Available</option>
+                  <option value="unavailable">Unavailable</option>
+                </select>
               </div>
             </div>
-            <label>3HR</label><input type="number" class="form-control mb-2" id="fare3">
-            <label>6HR</label><input type="number" class="form-control mb-2" id="fare6">
-            <label>1DAY</label><input type="number" class="form-control mb-2" id="fare24">
-            <label>7DAYS</label><input type="number" class="form-control mb-2" id="fare168">
-            <label>30DAYS</label><input type="number" class="form-control" id="fare720">
-            <button class="btn btn-primary mt-3 w-100" type="submit">Update Fare</button>
+            <div class="mb-3">
+              <select id="vehicleCategory" class="form-select" required>
+                <option value="">Select Category</option>
+                <option value="scooter">Scooter</option>
+                <option value="under150cc">Bikes Under 150cc</option>
+                <option value="premium">Premium Bikes</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Add Vehicle</button>
           </form>
         </div>
       </div>
@@ -133,8 +137,8 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+  import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
@@ -150,118 +154,92 @@
   const db = getDatabase(app);
   const auth = getAuth();
 
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      alert("Login required.");
-      window.location.href = "index.html";
-    } else {
-      const adminsRef = ref(db, "admins");
-      onValue(adminsRef, (snapshot) => {
-        const admins = snapshot.val();
-        let isAdmin = false;
+  function logout() {
+    signOut(auth).then(() => window.location.href = "index.html");
+  }
 
-        for (const key in admins) {
-          const a = admins[key];
-          if (a.email === user.email && (a.role === "admin" || a.role === "superadmin")) {
-            isAdmin = true;
-            break;
-          }
-        }
+  const bookingsTable = document.getElementById("bookingsTable");
+  const vehiclesTable = document.getElementById("vehiclesTable");
+  const usersTable = document.getElementById("usersTable");
+  const addVehicleForm = document.getElementById("addVehicleForm");
 
-        if (isAdmin) {
-          loadAdminData();
-        } else {
-          alert("Access denied.");
-          window.location.href = "index.html";
-        }
-      }, { onlyOnce: true });
+  // Bookings
+  onValue(ref(db, "bookings"), (snapshot) => {
+    const data = snapshot.val() || {};
+    bookingsTable.innerHTML = "";
+    let count = 1;
+    for (const vehicle in data) {
+      for (const bid in data[vehicle]) {
+        const b = data[vehicle][bid];
+        bookingsTable.innerHTML += `
+          <tr>
+            <td>${count++}</td>
+            <td>${vehicle}</td>
+            <td>${b.user}</td>
+            <td>${new Date(b.pickup).toLocaleString()}</td>
+            <td>${new Date(b.dropoff).toLocaleString()}</td>
+            <td>₹${b.fare}</td>
+            <td>${b.status}</td>
+          </tr>`;
+      }
     }
   });
 
-  function loadAdminData() {
-    const vehiclesRef = ref(db, "vehicles");
-    const bookingsRef = ref(db, "bookings");
-    const usersRef = ref(db, "users");
-
-    const vehiclesTable = document.getElementById("vehiclesTable");
-    const fareVehicleType = document.getElementById("fareVehicleType");
-    onValue(vehiclesRef, (snapshot) => {
-      const data = snapshot.val() || {};
-      vehiclesTable.innerHTML = "";
-      fareVehicleType.innerHTML = "<option value=''>Select Vehicle</option>";
-      for (let id in data) {
-        const v = data[id];
-        vehiclesTable.innerHTML += `<tr><td>${id}</td><td>${v.type}</td><td>${v.model}</td><td>${v.status}</td></tr>`;
-        fareVehicleType.innerHTML += `<option value="${id}">${v.model}</option>`;
-      }
-    });
-
-    const bookingsTable = document.getElementById("bookingsTable");
-    onValue(bookingsRef, (snapshot) => {
-      const data = snapshot.val() || {};
-      bookingsTable.innerHTML = "";
-      for (let vehicle in data) {
-        for (let bid in data[vehicle]) {
-          const b = data[vehicle][bid];
-          bookingsTable.innerHTML += `
-            <tr>
-              <td>${vehicle}</td>
-              <td>${b.user}</td>
-              <td>${new Date(b.pickup).toLocaleString()}</td>
-              <td>${new Date(b.dropoff).toLocaleString()}</td>
-              <td>₹${b.fare}</td>
-              <td>${b.status}</td>
-              <td><button class="btn btn-sm btn-danger" onclick="cancelBooking('${vehicle}', '${bid}')">Cancel</button></td>
-            </tr>`;
-        }
-      }
-    });
-
-    const usersTable = document.getElementById("usersTable");
-    onValue(usersRef, (snapshot) => {
-      const data = snapshot.val() || {};
-      usersTable.innerHTML = "";
-      for (let uid in data) {
-        const u = data[uid];
-        usersTable.innerHTML += `<tr><td>${uid}</td><td>${u.name || "-"}</td><td>${u.phone || "-"}</td></tr>`;
-      }
-    });
-
-    document.getElementById("fareForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const id = document.getElementById("fareVehicleType").value;
-      const from = document.getElementById("fareFromDate").value;
-      const to = document.getElementById("fareToDate").value;
-      const fareData = {
-        from,
-        to,
-        durations: {
-          3: Number(document.getElementById("fare3").value),
-          6: Number(document.getElementById("fare6").value),
-          24: Number(document.getElementById("fare24").value),
-          168: Number(document.getElementById("fare168").value),
-          720: Number(document.getElementById("fare720").value)
-        }
-      };
-      update(ref(db, `fareRules/${id}`), fareData)
-        .then(() => alert("Fare updated"))
-        .catch(err => alert("Error: " + err.message));
-    });
-  }
-
-  window.cancelBooking = function (vehicle, bid) {
-    if (confirm("Cancel this booking?")) {
-      remove(ref(db, `bookings/${vehicle}/${bid}`))
-        .then(() => alert("Booking cancelled"))
-        .catch(err => alert("Error: " + err.message));
+  // Users
+  onValue(ref(db, "users"), (snapshot) => {
+    const data = snapshot.val() || {};
+    usersTable.innerHTML = "";
+    let count = 1;
+    for (const uid in data) {
+      const u = data[uid];
+      usersTable.innerHTML += `
+        <tr>
+          <td>${count++}</td>
+          <td>${uid}</td>
+          <td>${u.name || '-'}</td>
+          <td>${u.email || '-'}</td>
+          <td>${u.phone || '-'}</td>
+        </tr>`;
     }
-  };
+  });
 
-  window.logout = function () {
-    signOut(auth).then(() => {
-      window.location.href = "index.html";
+  // Vehicles
+  onValue(ref(db, "vehicles"), (snapshot) => {
+    const data = snapshot.val() || {};
+    vehiclesTable.innerHTML = "";
+    for (const id in data) {
+      const v = data[id];
+      vehiclesTable.innerHTML += `
+        <tr>
+          <td>${id}</td>
+          <td>${v.model}</td>
+          <td>${v.status}</td>
+          <td>${v.category || '-'}</td>
+        </tr>`;
+    }
+  });
+
+  // Add Vehicle
+  addVehicleForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const id = document.getElementById("vehicleId").value.trim();
+    const model = document.getElementById("vehicleModel").value.trim();
+    const status = document.getElementById("vehicleStatus").value;
+    const category = document.getElementById("vehicleCategory").value;
+
+    set(ref(db, `vehicles/${id}`), {
+      model,
+      status,
+      category,
+      type: category
+    }).then(() => {
+      alert("Vehicle added successfully!");
+      addVehicleForm.reset();
+    }).catch(err => {
+      alert("Error adding vehicle: " + err.message);
     });
-  };
+  });
 </script>
+
 </body>
 </html>
