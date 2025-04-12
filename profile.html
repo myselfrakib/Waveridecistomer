@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WaveRide - Profile</title>
+  <title>WaveRide - Customer Profile</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     body {
@@ -131,17 +131,17 @@
     } else {
       const uid = user.uid;
 
-      // Check if user is admin
+      // ✅ Check if admin — redirect if true
       const adminRef = ref(db, `admins/${uid}/role`);
       onValue(adminRef, (snapshot) => {
         const role = snapshot.val();
         if (role === "admin") {
-          alert("Admins cannot access the profile page.");
+          alert("Admins are not allowed to access the profile page.");
           window.location.href = "admindashboard.html";
         }
       }, { onlyOnce: true });
 
-      // Load user profile
+      // ✅ Load customer profile
       const userRef = ref(db, 'users/' + uid);
       onValue(userRef, (snapshot) => {
         const data = snapshot.val();
@@ -151,20 +151,21 @@
         }
       });
 
-      // Update profile
+      // ✅ Save changes to Firebase
       document.getElementById("profileForm").addEventListener("submit", (e) => {
         e.preventDefault();
         const updatedData = {
           name: document.getElementById("name").value.trim(),
           phone: document.getElementById("phone").value.trim()
         };
-        update(ref(db, 'users/' + uid), updatedData).then(() => {
-          alert("Profile updated successfully!");
-        });
+        update(ref(db, 'users/' + uid), updatedData)
+          .then(() => alert("Profile updated successfully!"))
+          .catch(err => alert("Error: " + err.message));
       });
     }
   });
 
+  // ✅ Logout
   window.logout = function () {
     signOut(auth).then(() => {
       window.location.href = "login.html";
