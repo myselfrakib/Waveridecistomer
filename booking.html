@@ -13,7 +13,6 @@
       background: linear-gradient(to right, #4facfe, #00f2fe);
       color: #333;
     }
-
     nav.topbar {
       display: flex;
       justify-content: space-around;
@@ -25,14 +24,12 @@
       top: 0;
       z-index: 1000;
     }
-
     nav.topbar a {
       color: white;
       text-decoration: none;
       text-align: center;
       font-size: 14px;
     }
-
     .container {
       max-width: 600px;
       margin: 30px auto;
@@ -41,18 +38,15 @@
       border-radius: 15px;
       box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
-
     h2 {
       text-align: center;
       margin-bottom: 20px;
       color: #007bff;
     }
-
     label {
       margin-top: 15px;
       font-weight: bold;
     }
-
     input, select, button {
       width: 100%;
       padding: 12px;
@@ -61,7 +55,6 @@
       border: 1px solid #ccc;
       font-size: 1rem;
     }
-
     button {
       background: #007bff;
       color: white;
@@ -70,7 +63,6 @@
       margin-top: 20px;
       cursor: pointer;
     }
-
     .bike-card {
       background: #f9f9f9;
       border: 1px solid #ddd;
@@ -79,28 +71,18 @@
       margin-top: 15px;
       box-shadow: 0 5px 10px rgba(0,0,0,0.05);
     }
-
     .bike-card h3 {
       margin: 0;
       color: #007bff;
     }
-
     .bike-card p {
       margin: 5px 0;
     }
-
     .bike-card button {
       margin-top: 10px;
       width: auto;
       padding: 10px 15px;
     }
-
-    #bikeList p.loading {
-      text-align: center;
-      font-weight: bold;
-      color: #555;
-    }
-
     @media (max-width: 600px) {
       .container {
         margin: 10px;
@@ -149,6 +131,7 @@
 
   <div id="bikeList"></div>
 </div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
   import { getDatabase, ref, get, push, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
@@ -168,6 +151,20 @@
   const db = getDatabase(app);
   const auth = getAuth();
 
+  const pickupTimeSelect = document.getElementById("pickupTime");
+  for (let h = 8; h <= 23; h++) {
+    ["00", "30"].forEach(min => {
+      const label = new Date().setHours(h, min);
+      const time = new Date(label).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+      const option = document.createElement("option");
+      option.value = `${h}:${min}`;
+      option.textContent = time;
+      pickupTimeSelect.appendChild(option);
+    });
+  }
+
+  document.getElementById("pickupDate").min = new Date().toISOString().split("T")[0];
+
   const categoryBikes = {
     scooter: ["Activa 125", "Hero Maestro", "Destiny 125"],
     under150cc: ["Pulsar 150", "Platina 110", "FZS V1"],
@@ -178,10 +175,7 @@
     e.preventDefault();
 
     const user = auth.currentUser;
-    if (!user) {
-      alert("Please log in to book.");
-      return;
-    }
+    if (!user) return alert("Please log in to book.");
 
     const category = document.getElementById("category").value;
     const date = document.getElementById("pickupDate").value;
@@ -189,14 +183,11 @@
     const duration = parseInt(document.getElementById("duration").value);
     const bikes = categoryBikes[category];
 
-    // ✅ SAFE DATETIME PARSING FIX
     const [hour, minute] = time.split(":");
     const pickupDateTime = new Date(date);
     pickupDateTime.setHours(parseInt(hour), parseInt(minute));
-    const dropoffDateTime = new Date(pickupDateTime.getTime() + duration * 60 * 60 * 1000);
 
-    console.log("pickupDateTime:", pickupDateTime);
-    console.log("dropoffDateTime:", dropoffDateTime);
+    const dropoffDateTime = new Date(pickupDateTime.getTime() + duration * 3600000);
 
     const bikeList = document.getElementById("bikeList");
     bikeList.innerHTML = "<p class='loading'>🔄 Checking availability...</p>";
@@ -218,7 +209,7 @@
       }
 
       if (available) {
-        let fare = 500; // default
+        let fare = 500;
         const fareRef = ref(db, `fareRules/${bike}`);
         const fareSnap = await get(fareRef);
         if (fareSnap.exists()) {
@@ -254,5 +245,6 @@
       });
   };
 </script>
+
 </body>
 </html>
