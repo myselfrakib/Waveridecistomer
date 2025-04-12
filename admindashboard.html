@@ -64,14 +64,18 @@
       background: #0056b3;
     }
 
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
-    }
-
-    table, th, td {
-      border: 1px solid #ccc;
     }
 
     th {
@@ -80,16 +84,9 @@
     }
 
     th, td {
+      border: 1px solid #ccc;
       padding: 10px;
       text-align: center;
-    }
-
-    .section {
-      display: none;
-    }
-
-    .section.active {
-      display: block;
     }
 
     form {
@@ -132,6 +129,12 @@
 </head>
 <body>
 
+<nav class="topbar">
+  <a href="index.html"><i class="fas fa-home"></i><br>Home</a>
+  <a href="booking.html"><i class="fas fa-motorcycle"></i><br>Book</a>
+  <a href="mybookings.html"><i class="fas fa-list"></i><br>Bookings</a>
+  <a href="profile.html"><i class="fas fa-user"></i><br>Profile</a>
+</nav>
 
 <div class="container">
   <h2>WaveRide Admin Dashboard</h2>
@@ -191,21 +194,21 @@
   const bookingsDiv = document.getElementById("userBookings");
   const userListDiv = document.getElementById("userList");
 
-  // Load bookings
+  // Booking Viewer
   onValue(ref(db, 'bookings'), snapshot => {
     let html = '<table><tr><th>Vehicle</th><th>User</th><th>Pickup</th><th>Dropoff</th><th>Fare</th><th>Status</th></tr>';
     if (snapshot.exists()) {
       const data = snapshot.val();
-      for (const bike in data) {
-        for (const id in data[bike]) {
-          const b = data[bike][id];
+      for (const vehicle in data) {
+        for (const bookingId in data[vehicle]) {
+          const booking = data[vehicle][bookingId];
           html += `<tr>
-            <td>${bike}</td>
-            <td>${b.user}</td>
-            <td>${new Date(b.pickup).toLocaleString()}</td>
-            <td>${new Date(b.dropoff).toLocaleString()}</td>
-            <td>₹${b.fare}</td>
-            <td>${b.status}</td>
+            <td>${vehicle}</td>
+            <td>${booking.user}</td>
+            <td>${new Date(booking.pickup).toLocaleString()}</td>
+            <td>${new Date(booking.dropoff).toLocaleString()}</td>
+            <td>₹${booking.fare}</td>
+            <td>${booking.status}</td>
           </tr>`;
         }
       }
@@ -216,13 +219,33 @@
     bookingsDiv.innerHTML = html;
   });
 
-  // Load users
+  // Fare Rule Form
+  document.getElementById("fareForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const vehicle = document.getElementById("vehicle").value.trim();
+    const rule = {
+      from: document.getElementById("from").value,
+      to: document.getElementById("to").value,
+      durations: {
+        "3": parseInt(document.getElementById("fare3").value),
+        "6": parseInt(document.getElementById("fare6").value),
+        "24": parseInt(document.getElementById("fare24").value),
+        "168": parseInt(document.getElementById("fare168").value),
+        "720": parseInt(document.getElementById("fare720").value)
+      }
+    };
+    await set(ref(db, `fareRules/${vehicle}`), rule);
+    alert("Fare rule updated successfully!");
+    e.target.reset();
+  });
+
+  // Users Viewer
   onValue(ref(db, 'users'), snapshot => {
     let html = '<table><tr><th>User ID</th><th>Name</th><th>Phone</th></tr>';
     if (snapshot.exists()) {
-      const data = snapshot.val();
-      for (const uid in data) {
-        const user = data[uid];
+      const users = snapshot.val();
+      for (const uid in users) {
+        const user = users[uid];
         html += `<tr>
           <td>${uid}</td>
           <td>${user.name || '-'}</td>
@@ -236,31 +259,11 @@
     userListDiv.innerHTML = html;
   });
 
-  // Update fare rule
-  document.getElementById("fareForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const rule = {
-      from: document.getElementById("from").value,
-      to: document.getElementById("to").value,
-      durations: {
-        "3": parseInt(document.getElementById("fare3").value),
-        "6": parseInt(document.getElementById("fare6").value),
-        "24": parseInt(document.getElementById("fare24").value),
-        "168": parseInt(document.getElementById("fare168").value),
-        "720": parseInt(document.getElementById("fare720").value)
-      }
-    };
-    const vehicle = document.getElementById("vehicle").value.trim();
-    await set(ref(db, `fareRules/${vehicle}`), rule);
-    alert("Fare rule updated successfully!");
-    e.target.reset();
-  });
-
-  // Tab switch logic
-  window.switchTab = (id) => {
+  // Tab Switching
+  window.switchTab = (tab) => {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+    document.getElementById(tab).classList.add('active');
     event.target.classList.add('active');
   };
 </script>
