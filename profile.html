@@ -3,85 +3,126 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WaveRide - Profile</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap">
+  <title>WaveRide Admin Dashboard</title>
   <script src="https://kit.fontawesome.com/a2d9d6b3f3.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap">
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to right, #4facfe, #00f2fe);
       color: #333;
-      padding-bottom: 80px;
     }
 
     nav.topbar {
       display: flex;
       justify-content: space-around;
-      align-items: center;
       background-color: #007bff;
       color: white;
       padding: 12px 0;
-      font-size: 14px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      position: sticky;
-      top: 0;
-      width: 100%;
-      z-index: 1000;
     }
 
     nav.topbar a {
       color: white;
-      text-align: center;
       text-decoration: none;
-      font-size: 13px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 30px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
 
     h2 {
       text-align: center;
       color: #007bff;
-      margin: 20px 10px 10px;
-      font-size: 22px;
     }
 
-    .container {
-      max-width: 500px;
-      margin: auto;
-      padding: 20px;
-      background: #fff;
-      border-radius: 15px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
     }
 
-    input, button {
+    .tabs button {
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .tabs button.active {
+      background: #0056b3;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    table {
       width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th {
+      background: #007bff;
+      color: white;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
       padding: 10px;
-      margin-top: 10px;
-      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    form {
+      margin-top: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+    }
+
+    input, select, button[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
       border-radius: 8px;
       border: 1px solid #ccc;
       font-size: 1rem;
     }
 
-    button {
+    button[type="submit"] {
       background: #007bff;
       color: white;
-      border: none;
       font-weight: bold;
-      cursor: pointer;
+      border: none;
     }
 
-    button.logout {
-      background: #dc3545;
-      margin-top: 10px;
-    }
-
-    @media (max-width: 480px) {
-      nav.topbar a {
-        font-size: 12px;
+    @media (max-width: 600px) {
+      .container {
+        margin: 10px;
+        padding: 20px;
       }
-      input, button {
-        font-size: 15px;
+
+      table {
+        font-size: 12px;
       }
     }
   </style>
@@ -95,18 +136,48 @@
   <a href="profile.html"><i class="fas fa-user"></i><br>Profile</a>
 </nav>
 
-<h2>My Profile</h2>
 <div class="container">
-  <input type="text" id="name" placeholder="Full Name" />
-  <input type="text" id="phone" placeholder="Phone Number" />
-  <button onclick="updateProfile()">Update Details</button>
-  <button class="logout" onclick="logout()">Logout</button>
+  <h2>WaveRide Admin Dashboard</h2>
+
+  <div class="tabs">
+    <button onclick="switchTab('bookings')" class="active">📋 Bookings</button>
+    <button onclick="switchTab('fareRules')">💸 Fare Rules</button>
+    <button onclick="switchTab('users')">👤 Customer Details</button>
+  </div>
+
+  <div id="bookings" class="section active">
+    <h3>Live Bookings</h3>
+    <div id="userBookings">Loading...</div>
+  </div>
+
+  <div id="fareRules" class="section">
+    <h3>Update Fare Rules</h3>
+    <form id="fareForm">
+      <label>Vehicle Name:</label>
+      <input type="text" id="vehicle" required>
+      <label>Effective From:</label>
+      <input type="date" id="from" required>
+      <label>Effective To:</label>
+      <input type="date" id="to" required>
+      <label>3 HRS:</label><input type="number" id="fare3" required>
+      <label>6 HRS:</label><input type="number" id="fare6" required>
+      <label>1 DAY:</label><input type="number" id="fare24" required>
+      <label>7 DAYS:</label><input type="number" id="fare168" required>
+      <label>30 DAYS:</label><input type="number" id="fare720" required>
+      <button type="submit">Update Fare Rules</button>
+    </form>
+  </div>
+
+  <div id="users" class="section">
+    <h3>Registered Customers</h3>
+    <div id="userList">Loading...</div>
+  </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
@@ -122,49 +193,97 @@
   const db = getDatabase(app);
   const auth = getAuth();
 
-  const nameInput = document.getElementById("name");
-  const phoneInput = document.getElementById("phone");
-
-  let currentUser = null;
-
-  onAuthStateChanged(auth, async user => {
+  onAuthStateChanged(auth, (user) => {
     if (!user) {
-      alert("Please log in to access your profile.");
-      window.location.href = "index.html";
-      return;
-    }
-    currentUser = user;
-    const userRef = ref(db, `users/${user.uid}`);
-    const snapshot = await get(userRef);
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      nameInput.value = data.name || '';
-      phoneInput.value = data.phone || '';
+      alert("You must be logged in to access the admin panel.");
+      window.location.href = "login.html";
+    } else {
+      const roleRef = ref(db, `users/${user.uid}/role`);
+      onValue(roleRef, snapshot => {
+        const role = snapshot.val();
+        if (role !== "admin") {
+          alert("Access denied. Admins only.");
+          window.location.href = "index.html";
+        } else {
+          loadAdminContent();
+        }
+      }, { onlyOnce: true });
     }
   });
 
-  window.updateProfile = function () {
-    if (!currentUser) return;
-    const name = nameInput.value.trim();
-    const phone = phoneInput.value.trim();
-    if (!name || !phone) {
-      alert("Please fill out all fields.");
-      return;
-    }
-    set(ref(db, `users/${currentUser.uid}`), {
-      name,
-      phone,
-      email: currentUser.email
-    }).then(() => {
-      alert("Profile updated!");
-    });
-  };
+  function loadAdminContent() {
+    const bookingsDiv = document.getElementById("userBookings");
+    const userListDiv = document.getElementById("userList");
 
-  window.logout = function () {
-    signOut(auth).then(() => {
-      alert("Logged out!");
-      window.location.href = "index.html";
+    onValue(ref(db, 'bookings'), snapshot => {
+      let html = '<table><tr><th>Vehicle</th><th>User</th><th>Pickup</th><th>Dropoff</th><th>Fare</th><th>Status</th></tr>';
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        for (const vehicle in data) {
+          for (const bookingId in data[vehicle]) {
+            const booking = data[vehicle][bookingId];
+            html += `<tr>
+              <td>${vehicle}</td>
+              <td>${booking.user}</td>
+              <td>${new Date(booking.pickup).toLocaleString()}</td>
+              <td>${new Date(booking.dropoff).toLocaleString()}</td>
+              <td>₹${booking.fare}</td>
+              <td>${booking.status}</td>
+            </tr>`;
+          }
+        }
+      } else {
+        html += "<tr><td colspan='6'>No bookings found</td></tr>";
+      }
+      html += '</table>';
+      bookingsDiv.innerHTML = html;
     });
+
+    onValue(ref(db, 'users'), snapshot => {
+      let html = '<table><tr><th>User ID</th><th>Name</th><th>Phone</th><th>Role</th></tr>';
+      if (snapshot.exists()) {
+        const users = snapshot.val();
+        for (const uid in users) {
+          const user = users[uid];
+          html += `<tr>
+            <td>${uid}</td>
+            <td>${user.name || '-'}</td>
+            <td>${user.phone || '-'}</td>
+            <td>${user.role || 'user'}</td>
+          </tr>`;
+        }
+      } else {
+        html += "<tr><td colspan='4'>No users found</td></tr>";
+      }
+      html += '</table>';
+      userListDiv.innerHTML = html;
+    });
+
+    document.getElementById("fareForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const vehicle = document.getElementById("vehicle").value.trim();
+      const rule = {
+        from: document.getElementById("from").value,
+        to: document.getElementById("to").value,
+        durations: {
+          "3": parseInt(document.getElementById("fare3").value),
+          "6": parseInt(document.getElementById("fare6").value),
+          "24": parseInt(document.getElementById("fare24").value),
+          "168": parseInt(document.getElementById("fare168").value),
+          "720": parseInt(document.getElementById("fare720").value)
+        }
+      };
+      await set(ref(db, `fareRules/${vehicle}`), rule);
+      alert("Fare rule updated successfully!");
+      e.target.reset();
+    });
+  }
+
+  window.switchTab = (tab) => {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+    document.getElementById(tab).classList.add('active');
+    event.target.classList.add('active');
   };
 </script>
 
