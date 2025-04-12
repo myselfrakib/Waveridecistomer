@@ -4,162 +4,231 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WaveRide Admin Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #4facfe, #00f2fe);
-      color: #333;
+      background: linear-gradient(to right, #3f87a6, #ebf8e1);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    .container {
-      max-width: 1000px;
-      margin: 50px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    .card {
+      border-radius: 1rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    select, input, button {
-      margin: 5px;
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    .section {
-      margin-bottom: 30px;
-    }
-    .toast {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: green;
+    .card-header {
+      background-color: #0d6efd;
       color: white;
-      padding: 10px 20px;
-      border-radius: 5px;
-      display: none;
+      border-top-left-radius: 1rem;
+      border-top-right-radius: 1rem;
+    }
+    h3 {
+      font-weight: 600;
+    }
+    .table-responsive {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .nav-tabs .nav-link.active {
+      background-color: #0d6efd;
+      color: white;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>WaveRide Admin Dashboard</h2>
-
-    <div class="section">
-      <h3>Change Booking Status</h3>
-      <input type="text" id="bookingId" placeholder="Booking ID" />
-      <select id="status">
-        <option value="pending">Pending</option>
-        <option value="confirmed">Confirmed</option>
-        <option value="cancelled">Cancelled</option>
-        <option value="completed">Completed</option>
-      </select>
-      <button onclick="updateStatus()">Update Status</button>
+  <div class="container py-5">
+    <div class="text-center mb-4">
+      <h1 class="text-primary">WaveRide Admin Dashboard</h1>
+      <p class="text-muted">Manage Bookings, Users, Vehicles, and Fares</p>
     </div>
 
-    <div class="section">
-      <h3>Change Fare</h3>
-      <select id="vehicleSelect">
-        <option disabled selected>Select Vehicle</option>
-      </select>
-      <input type="date" id="fromDate" />
-      <input type="date" id="toDate" />
-      <input type="number" id="fare3hrs" placeholder="3HRS Fare" />
-      <input type="number" id="fare6hrs" placeholder="6HRS Fare" />
-      <input type="number" id="fare1day" placeholder="1DAY Fare" />
-      <input type="number" id="fare7days" placeholder="7DAYS Fare" />
-      <input type="number" id="fare30days" placeholder="30DAYS Fare" />
-      <button onclick="updateFare()">Update Fare</button>
+    <ul class="nav nav-tabs mb-3" id="adminTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="bookings-tab" data-bs-toggle="tab" data-bs-target="#bookings" type="button" role="tab">Bookings</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">Users</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehicles" type="button" role="tab">Vehicles</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="fare-tab" data-bs-toggle="tab" data-bs-target="#fare" type="button" role="tab">Fare Management</button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="adminTabContent">
+      <!-- Bookings Tab -->
+      <div class="tab-pane fade show active" id="bookings" role="tabpanel">
+        <div class="card">
+          <div class="card-header">All Bookings</div>
+          <div class="card-body table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Booking ID</th>
+                  <th>User</th>
+                  <th>Vehicle</th>
+                  <th>Pickup</th>
+                  <th>Dropoff</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="bookingsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Tab -->
+      <div class="tab-pane fade" id="users" role="tabpanel">
+        <div class="card">
+          <div class="card-header">Registered Users</div>
+          <div class="card-body table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                </tr>
+              </thead>
+              <tbody id="usersTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vehicles Tab -->
+      <div class="tab-pane fade" id="vehicles" role="tabpanel">
+        <div class="card">
+          <div class="card-header">Available Vehicles</div>
+          <div class="card-body table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Vehicle ID</th>
+                  <th>Type</th>
+                  <th>Model</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="vehiclesTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fare Tab -->
+      <div class="tab-pane fade" id="fare" role="tabpanel">
+        <div class="card">
+          <div class="card-header">Fare Management</div>
+          <div class="card-body">
+            <form id="fareForm">
+              <div class="row mb-3">
+                <div class="col-md-4">
+                  <label class="form-label">Vehicle Type</label>
+                  <select class="form-select" id="fareVehicleType">
+                    <option value="">Select Vehicle</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">From Date</label>
+                  <input type="date" class="form-control" id="fareFromDate">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">To Date</label>
+                  <input type="date" class="form-control" id="fareToDate">
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">New Fare per Hour</label>
+                <input type="number" class="form-control" id="fareAmount" placeholder="Enter new fare">
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Update Fare</button>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="toast" id="toast">Updated successfully!</div>
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
+      apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
+      authDomain: "waveride-bike-rental-service.firebaseapp.com",
       databaseURL: "https://waveride-bike-rental-service-default-rtdb.firebaseio.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      projectId: "waveride-bike-rental-service",
+      storageBucket: "waveride-bike-rental-service.appspot.com",
+      messagingSenderId: "341920732961",
+      appId: "1:341920732961:web:3967e19131f8984f0f1060",
+      measurementId: "G-59M75TD99E"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    const toast = document.getElementById("toast");
-
-    function showToast(message) {
-      toast.textContent = message;
-      toast.style.display = "block";
-      setTimeout(() => {
-        toast.style.display = "none";
-      }, 3000);
-    }
-
-    window.updateStatus = function () {
-      const bookingId = document.getElementById("bookingId").value;
-      const status = document.getElementById("status").value;
-
-      if (!bookingId) return alert("Enter Booking ID");
-
-      const bookingRef = ref(db, `bookings/${bookingId}`);
-      update(bookingRef, { status })
-        .then(() => showToast("Booking status updated!"))
-        .catch((err) => alert("Failed: " + err));
-    };
-
-    window.updateFare = function () {
-      const vehicleId = document.getElementById("vehicleSelect").value;
-      const fromDate = document.getElementById("fromDate").value;
-      const toDate = document.getElementById("toDate").value;
-      const fare3hrs = +document.getElementById("fare3hrs").value;
-      const fare6hrs = +document.getElementById("fare6hrs").value;
-      const fare1day = +document.getElementById("fare1day").value;
-      const fare7days = +document.getElementById("fare7days").value;
-      const fare30days = +document.getElementById("fare30days").value;
-
-      if (!vehicleId || !fromDate || !toDate) return alert("Fill all fields");
-
-      const fareRef = ref(db, `fareRules/${vehicleId}`);
-      const data = {
-        from: fromDate,
-        to: toDate,
-        rates: {
-          "3HRS": fare3hrs,
-          "6HRS": fare6hrs,
-          "1DAY": fare1day,
-          "7DAYS": fare7days,
-          "30DAYS": fare30days
-        }
-      };
-
-      set(fareRef, data)
-        .then(() => showToast("Fare updated!"))
-        .catch((err) => alert("Failed: " + err));
-    };
-
-    // Load Vehicles
-    const vehicleSelect = document.getElementById("vehicleSelect");
-    const vehicleRef = ref(db, "vehicles");
+    // Load vehicles
+    const vehicleRef = ref(db, 'vehicles');
     onValue(vehicleRef, (snapshot) => {
       const data = snapshot.val();
-      vehicleSelect.innerHTML = '<option disabled selected>Select Vehicle</option>';
-      for (const key in data) {
-        const name = data[key].name || key;
-        const option = document.createElement("option");
-        option.value = key;
-        option.textContent = name;
-        vehicleSelect.appendChild(option);
+      const vehiclesTable = document.getElementById('vehiclesTable');
+      const fareVehicleType = document.getElementById('fareVehicleType');
+      vehiclesTable.innerHTML = '';
+      fareVehicleType.innerHTML = '<option value="">Select Vehicle</option>';
+      for (let id in data) {
+        let v = data[id];
+        vehiclesTable.innerHTML += `<tr><td>${id}</td><td>${v.type}</td><td>${v.model}</td><td>${v.status}</td></tr>`;
+        fareVehicleType.innerHTML += `<option value="${id}">${v.type} - ${v.model}</option>`;
       }
+    });
+
+    // Load bookings
+    const bookingRef = ref(db, 'bookings');
+    onValue(bookingRef, (snapshot) => {
+      const data = snapshot.val();
+      const bookingsTable = document.getElementById('bookingsTable');
+      bookingsTable.innerHTML = '';
+      for (let id in data) {
+        let b = data[id];
+        bookingsTable.innerHTML += `<tr><td>${id}</td><td>${b.userId || 'N/A'}</td><td>${b.vehicleId || 'N/A'}</td><td>${b.pickup}</td><td>${b.dropoff}</td><td>${b.date}</td><td>${b.status}</td></tr>`;
+      }
+    });
+
+    // Load users
+    const userRef = ref(db, 'users');
+    onValue(userRef, (snapshot) => {
+      const data = snapshot.val();
+      const usersTable = document.getElementById('usersTable');
+      usersTable.innerHTML = '';
+      for (let id in data) {
+        let u = data[id];
+        usersTable.innerHTML += `<tr><td>${id}</td><td>${u.name || 'N/A'}</td><td>${u.email || 'N/A'}</td><td>${u.phone || 'N/A'}</td></tr>`;
+      }
+    });
+
+    // Fare update logic
+    const fareForm = document.getElementById('fareForm');
+    fareForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const vehicleId = document.getElementById('fareVehicleType').value;
+      const from = document.getElementById('fareFromDate').value;
+      const to = document.getElementById('fareToDate').value;
+      const newFare = document.getElementById('fareAmount').value;
+      if (!vehicleId || !from || !to || !newFare) return alert('Please fill in all fields.');
+      const updatePath = `fareRules/${vehicleId}`;
+      update(ref(db, updatePath), {
+        fromDate: from,
+        toDate: to,
+        fare: newFare
+      }).then(() => {
+        alert('Fare updated successfully!');
+      }).catch(err => alert('Error updating fare: ' + err));
     });
   </script>
 </body>
