@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="="en">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -44,7 +44,6 @@
   </ul>
 
   <div class="tab-content">
-    <!-- Bookings Tab -->
     <div class="tab-pane fade show active" id="bookings">
       <div class="card">
         <div class="card-header">All Bookings</div>
@@ -57,7 +56,6 @@
       </div>
     </div>
 
-    <!-- Users Tab -->
     <div class="tab-pane fade" id="users">
       <div class="card">
         <div class="card-header">Registered Users</div>
@@ -70,25 +68,23 @@
       </div>
     </div>
 
-    <!-- Vehicles Tab -->
     <div class="tab-pane fade" id="vehicles">
       <div class="card">
         <div class="card-header">Available Vehicles</div>
         <div class="card-body table-responsive">
           <table class="table table-striped">
-            <thead><tr><th>#</th><th>Category</th><th>Model</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>#</th><th>Category</th><th>Model</th><th>Status</th><th>Image</th><th>Actions</th></tr></thead>
             <tbody id="vehiclesTable"></tbody>
           </table>
         </div>
       </div>
     </div>
-
-    <!-- Add Vehicle -->
+    <!-- Add Vehicle Tab -->
     <div class="tab-pane fade" id="addVehicle">
       <div class="card">
         <div class="card-header">Add New Vehicle</div>
         <div class="card-body">
-          <form id="addVehicleForm" class="row g-3">
+          <form id="addVehicleForm" class="row g-3" enctype="multipart/form-data">
             <div class="col-md-6">
               <label>Select Category</label>
               <select id="vehicleCategory" class="form-select" required></select>
@@ -96,6 +92,10 @@
             <div class="col-md-6">
               <label>Vehicle Name</label>
               <input type="text" id="vehicleName" class="form-control" required />
+            </div>
+            <div class="col-md-12">
+              <label>Vehicle Image</label>
+              <input type="file" id="vehicleImageFile" class="form-control" accept="image/*" required />
             </div>
             <div class="col-12"><hr><strong>Fare Structure</strong></div>
             <div class="col-md-4"><label>3 HRS</label><input type="number" id="fare3" class="form-control" required /></div>
@@ -110,8 +110,7 @@
         </div>
       </div>
     </div>
-
-    <!-- Festive Fare -->
+    <!-- Festive Fare Tab -->
     <div class="tab-pane fade" id="festiveFare">
       <div class="card">
         <div class="card-header">Festive Fare Control</div>
@@ -143,187 +142,204 @@
 
   </div>
 </div>
-
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getDatabase, ref, onValue, set, get, remove } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, get, remove } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
-    authDomain: "waveride-bike-rental-service.firebaseapp.com",
-    databaseURL: "https://waveride-bike-rental-service-default-rtdb.firebaseio.com",
-    projectId: "waveride-bike-rental-service",
-    storageBucket: "waveride-bike-rental-service.appspot.com",
-    messagingSenderId: "341920732961",
-    appId: "1:341920732961:web:3967e19131f8984f0f1060"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
+  authDomain: "waveride-bike-rental-service.firebaseapp.com",
+  databaseURL: "https://waveride-bike-rental-service-default-rtdb.firebaseio.com",
+  projectId: "waveride-bike-rental-service",
+  storageBucket: "waveride-bike-rental-service.appspot.com",
+  messagingSenderId: "341920732961",
+  appId: "1:341920732961:web:3967e19131f8984f0f1060"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const auth = getAuth();
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth();
+const storage = getStorage(app);
 
-  document.getElementById("logoutBtn").onclick = () => {
-    signOut(auth).then(() => window.location.href = "adminlogin.html");
-  };
+document.getElementById("logoutBtn").onclick = () => {
+  signOut(auth).then(() => window.location.href = "adminlogin.html");
+};
 
-  let allCategories = [];
+let allCategories = [];
 
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) return (window.location.href = "adminlogin.html");
-    const snap = await get(ref(db, `admins/${user.uid}`));
-    if (!snap.exists() || (snap.val().role !== "admin" && snap.val().role !== "superadmin")) {
-      alert("Access denied");
-      return window.location.href = "index.html";
-    }
-    loadDashboard();
-  });
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return (window.location.href = "adminlogin.html");
+  const snap = await get(ref(db, `admins/${user.uid}`));
+  if (!snap.exists() || (snap.val().role !== "admin" && snap.val().role !== "superadmin")) {
+    alert("Access denied");
+    return window.location.href = "index.html";
+  }
+  loadDashboard();
+});
 
-  function loadDashboard() {
-    const bookingsTable = document.getElementById("bookingsTable");
-    const usersTable = document.getElementById("usersTable");
-    const vehiclesTable = document.getElementById("vehiclesTable");
+function loadDashboard() {
+  const bookingsTable = document.getElementById("bookingsTable");
+  const usersTable = document.getElementById("usersTable");
+  const vehiclesTable = document.getElementById("vehiclesTable");
+  const vehicleCategory = document.getElementById("vehicleCategory");
 
-    onValue(ref(db, "bookings"), snap => {
-      bookingsTable.innerHTML = "";
-      let i = 1;
-      for (let vehicle in snap.val()) {
-        for (let id in snap.val()[vehicle]) {
-          const b = snap.val()[vehicle][id];
-          bookingsTable.innerHTML += `<tr>
-            <td>${i++}</td><td>${b.user}</td><td>${vehicle}</td><td>${b.pickup}</td><td>${b.dropoff}</td>
-            <td>${b.fare}</td><td>${b.status}</td>
-            <td><button class="btn btn-sm btn-danger" onclick="remove(ref(db, 'bookings/${vehicle}/${id}'))">Delete</button></td>
-          </tr>`;
-        }
-      }
-    });
-
-    onValue(ref(db, "users"), snap => {
-      usersTable.innerHTML = "";
-      let i = 1;
-      for (let id in snap.val()) {
-        const u = snap.val()[id];
-        usersTable.innerHTML += `<tr>
-          <td>${i++}</td><td>${u.name || ""}</td><td>${u.email || ""}</td><td>${u.phone || ""}</td>
-          <td><button class="btn btn-sm btn-danger" onclick="remove(ref(db, 'users/${id}'))">Delete</button></td>
+  onValue(ref(db, "bookings"), snap => {
+    bookingsTable.innerHTML = "";
+    let i = 1;
+    for (let vehicle in snap.val()) {
+      for (let id in snap.val()[vehicle]) {
+        const b = snap.val()[vehicle][id];
+        bookingsTable.innerHTML += `<tr>
+          <td>${i++}</td><td>${b.user}</td><td>${vehicle}</td><td>${b.pickup}</td><td>${b.dropoff}</td>
+          <td>${b.fare}</td><td>${b.status}</td>
+          <td><button class="btn btn-sm btn-danger" onclick="remove(ref(db, 'bookings/${vehicle}/${id}'))">Delete</button></td>
         </tr>`;
       }
-    });
-
-    onValue(ref(db, "vehicles"), snap => {
-      vehiclesTable.innerHTML = "";
-      let i = 1;
-      allCategories = Object.keys(snap.val() || {});
-      for (let cat in snap.val()) {
-        for (let model in snap.val()[cat]) {
-          const v = snap.val()[cat][model];
-          vehiclesTable.innerHTML += `<tr>
-            <td>${i++}</td><td>${cat}</td><td>${model}</td><td>${v.status}</td>
-            <td>
-              ${v.isActive !== false 
-                ? `<button class="btn btn-sm btn-warning me-1" onclick="toggleVehicle('${cat}', '${model}', false)">Disable</button>` 
-                : `<button class="btn btn-sm btn-success me-1" onclick="toggleVehicle('${cat}', '${model}', true)">Enable</button>`}
-              <button class="btn btn-sm btn-danger" onclick="deleteVehicle('${cat}', '${model}')">Delete</button>
-            </td>
-          </tr>`;
-        }
-      }
-      generateCategoryFareFields(allCategories);
-    });
-
-    get(ref(db, "festiveRates")).then(snap => {
-      const data = snap.val();
-      if (!data) return;
-      document.getElementById("festiveFrom").value = data.from || "";
-      document.getElementById("festiveTo").value = data.to || "";
-      document.getElementById("festiveStatus").value = String(data.enabled || false);
-      for (let cat in data.customFares) {
-        for (let dur in data.customFares[cat]) {
-          const input = document.getElementById(`fare_${cat}_${dur}`);
-          if (input) input.value = data.customFares[cat][dur];
-        }
-      }
-    });
-  }
-
-  function generateCategoryFareFields(categories) {
-    const container = document.getElementById("categoryFareInputs");
-    container.innerHTML = "<hr><strong>Set Fare for Each Category & Duration</strong><div class='row'></div>";
-    const row = container.querySelector(".row");
-    const durations = { "3": "3 HRS", "6": "6 HRS", "24": "1 DAY", "168": "7 DAYS", "720": "30 DAYS" };
-
-    categories.forEach(category => {
-      const col = document.createElement("div");
-      col.className = "col-md-6";
-      col.innerHTML = `<div class="border p-2 mb-3 rounded bg-light">
-        <strong>${category}</strong>
-        ${Object.entries(durations).map(([key, label]) => `
-          <label>${label}</label>
-          <input type="number" class="form-control mb-1" id="fare_${category}_${key}" placeholder="Fare for ${label}" required />
-        `).join('')}
-      </div>`;
-      row.appendChild(col);
-    });
-  }
-
-  document.getElementById("addVehicleForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const cat = document.getElementById("vehicleCategory").value;
-    const name = document.getElementById("vehicleName").value.trim();
-    const fare = {
-      3: +document.getElementById("fare3").value,
-      6: +document.getElementById("fare6").value,
-      24: +document.getElementById("fare24").value,
-      168: +document.getElementById("fare168").value,
-      720: +document.getElementById("fare720").value
-    };
-    await set(ref(db, `vehicles/${cat}/${name}`), {
-      status: "available",
-      isActive: true
-    });
-    await set(ref(db, `fareRules/${name}`), {
-      from: new Date().toISOString().split("T")[0],
-      to: "2030-12-31",
-      durations: fare
-    });
-    alert("Vehicle added successfully!");
-    e.target.reset();
+    }
   });
 
-  document.getElementById("festiveForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const from = document.getElementById("festiveFrom").value;
-    const to = document.getElementById("festiveTo").value;
-    const enabled = document.getElementById("festiveStatus").value === "true";
-    const customFares = {};
-
-    allCategories.forEach(cat => {
-      customFares[cat] = {};
-      ["3", "6", "24", "168", "720"].forEach(dur => {
-        const val = parseInt(document.getElementById(`fare_${cat}_${dur}`).value);
-        customFares[cat][dur] = val;
-      });
-    });
-
-    await set(ref(db, "festiveRates"), { from, to, enabled, customFares });
-    alert("Festive rates updated!");
+  onValue(ref(db, "users"), snap => {
+    usersTable.innerHTML = "";
+    let i = 1;
+    for (let id in snap.val()) {
+      const u = snap.val()[id];
+      usersTable.innerHTML += `<tr>
+        <td>${i++}</td><td>${u.name || ""}</td><td>${u.email || ""}</td><td>${u.phone || ""}</td>
+        <td><button class="btn btn-sm btn-danger" onclick="remove(ref(db, 'users/${id}'))">Delete</button></td>
+      </tr>`;
+    }
   });
 
-  // New: Enable/Disable
-  window.toggleVehicle = async (category, model, activate) => {
-    await set(ref(db, `vehicles/${category}/${model}/isActive`), activate);
-    alert(`${model} has been ${activate ? 'enabled' : 'disabled'}.`);
+  onValue(ref(db, "vehicles"), snap => {
+    vehiclesTable.innerHTML = "";
+    vehicleCategory.innerHTML = '<option value="">Select</option>';
+    let i = 1;
+    allCategories = Object.keys(snap.val() || {});
+    for (let cat in snap.val()) {
+      vehicleCategory.innerHTML += `<option value="${cat}">${cat}</option>`;
+      for (let model in snap.val()[cat]) {
+        const v = snap.val()[cat][model];
+        vehiclesTable.innerHTML += `<tr>
+          <td>${i++}</td><td>${cat}</td><td>${model}</td><td>${v.status}</td>
+          <td>${v.image ? `<img src="${v.image}" width="80"/>` : 'N/A'}</td>
+          <td>
+            ${v.isActive !== false 
+              ? `<button class="btn btn-sm btn-warning me-1" onclick="toggleVehicle('${cat}', '${model}', false)">Disable</button>` 
+              : `<button class="btn btn-sm btn-success me-1" onclick="toggleVehicle('${cat}', '${model}', true)">Enable</button>`}
+            <button class="btn btn-sm btn-danger" onclick="deleteVehicle('${cat}', '${model}')">Delete</button>
+          </td>
+        </tr>`;
+      }
+    }
+    generateCategoryFareFields(allCategories);
+  });
+
+  get(ref(db, "festiveRates")).then(snap => {
+    const data = snap.val();
+    if (!data) return;
+    document.getElementById("festiveFrom").value = data.from || "";
+    document.getElementById("festiveTo").value = data.to || "";
+    document.getElementById("festiveStatus").value = String(data.enabled || false);
+    for (let cat in data.customFares) {
+      for (let dur in data.customFares[cat]) {
+        const input = document.getElementById(`fare_${cat}_${dur}`);
+        if (input) input.value = data.customFares[cat][dur];
+      }
+    }
+  });
+}
+
+function generateCategoryFareFields(categories) {
+  const container = document.getElementById("categoryFareInputs");
+  container.innerHTML = "<hr><strong>Set Fare for Each Category & Duration</strong><div class='row'></div>";
+  const row = container.querySelector(".row");
+  const durations = { "3": "3 HRS", "6": "6 HRS", "24": "1 DAY", "168": "7 DAYS", "720": "30 DAYS" };
+
+  categories.forEach(category => {
+    const col = document.createElement("div");
+    col.className = "col-md-6";
+    col.innerHTML = `<div class="border p-2 mb-3 rounded bg-light">
+      <strong>${category}</strong>
+      ${Object.entries(durations).map(([key, label]) => `
+        <label>${label}</label>
+        <input type="number" class="form-control mb-1" id="fare_${category}_${key}" placeholder="Fare for ${label}" required />
+      `).join('')}
+    </div>`;
+    row.appendChild(col);
+  });
+}
+
+document.getElementById("addVehicleForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const cat = document.getElementById("vehicleCategory").value;
+  const name = document.getElementById("vehicleName").value.trim();
+  const file = document.getElementById("vehicleImageFile").files[0];
+
+  const fare = {
+    3: +document.getElementById("fare3").value,
+    6: +document.getElementById("fare6").value,
+    24: +document.getElementById("fare24").value,
+    168: +document.getElementById("fare168").value,
+    720: +document.getElementById("fare720").value
   };
 
-  window.deleteVehicle = async (category, model) => {
-    const confirmDelete = confirm(`Permanently delete ${model}?`);
-    if (!confirmDelete) return;
-    await remove(ref(db, `vehicles/${category}/${model}`));
-    await remove(ref(db, `fareRules/${model}`));
-    alert(`${model} has been deleted.`);
-  };
+  if (!file) return alert("Please select an image!");
+
+  const imageRef = sRef(storage, `vehicle_images/${cat}_${name}_${Date.now()}`);
+  await uploadBytes(imageRef, file);
+  const imageUrl = await getDownloadURL(imageRef);
+
+  await set(ref(db, `vehicles/${cat}/${name}`), {
+    status: "available",
+    isActive: true,
+    image: imageUrl
+  });
+
+  await set(ref(db, `fareRules/${name}`), {
+    from: new Date().toISOString().split("T")[0],
+    to: "2030-12-31",
+    durations: fare
+  });
+
+  alert("Vehicle added successfully!");
+  e.target.reset();
+});
+
+document.getElementById("festiveForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const from = document.getElementById("festiveFrom").value;
+  const to = document.getElementById("festiveTo").value;
+  const enabled = document.getElementById("festiveStatus").value === "true";
+  const customFares = {};
+
+  allCategories.forEach(cat => {
+    customFares[cat] = {};
+    ["3", "6", "24", "168", "720"].forEach(dur => {
+      const val = parseInt(document.getElementById(`fare_${cat}_${dur}`).value);
+      customFares[cat][dur] = val;
+    });
+  });
+
+  await set(ref(db, "festiveRates"), { from, to, enabled, customFares });
+  alert("Festive rates updated!");
+});
+
+window.toggleVehicle = async (category, model, activate) => {
+  await set(ref(db, `vehicles/${category}/${model}/isActive`), activate);
+  alert(`${model} has been ${activate ? 'enabled' : 'disabled'}.`);
+};
+
+window.deleteVehicle = async (category, model) => {
+  const confirmDelete = confirm(`Permanently delete ${model}?`);
+  if (!confirmDelete) return;
+  await remove(ref(db, `vehicles/${category}/${model}`));
+  await remove(ref(db, `fareRules/${model}`));
+  alert(`${model} has been deleted.`);
+};
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
