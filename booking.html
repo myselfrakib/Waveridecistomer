@@ -1,46 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WaveRide | Book Your Ride</title>
+  <title>WaveRide - Book Your Ride</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to right, #4facfe, #00f2fe);
-      padding: 20px;
+      padding-bottom: 80px; /* space for bottom nav */
     }
-    .navbar {
-      background: #fff;
-      padding: 15px;
-      text-align: center;
-      font-weight: bold;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-    .navbar a {
-      margin: 0 15px;
-      text-decoration: none;
-      color: #007bff;
-    }
-    .container {
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 500px;
-      margin: auto;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
+
     h2 {
       text-align: center;
       color: #007bff;
+      margin-top: 20px;
     }
+
+    .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 500px;
+      margin: 20px auto;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
     label {
       font-weight: bold;
       margin-top: 10px;
       display: block;
     }
+
     select, input, button {
       width: 100%;
       padding: 10px;
@@ -50,71 +43,115 @@
       border: 1px solid #ccc;
       font-size: 1rem;
     }
+
     button {
       background: #007bff;
       color: #fff;
-      border: none;
       font-weight: bold;
+      border: none;
       cursor: pointer;
+      transition: background 0.3s ease;
     }
+
+    button:hover {
+      background: #0056b3;
+    }
+
     .bike-item {
-      background: #f9f9f9;
-      border: 1px solid #ddd;
+      background: #f1f1f1;
       padding: 15px;
       border-radius: 10px;
-      margin-top: 15px;
+      margin-bottom: 10px;
       text-align: center;
     }
-    .bike-item button {
-      margin-top: 10px;
+
+    .bike-item img {
+      width: 100%;
+      max-width: 300px;
+      border-radius: 10px;
+      margin: 10px auto;
+    }
+
+    /* Bottom Navbar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #fff;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 999;
+    }
+
+    .bottom-nav a {
+      color: #666;
+      text-align: center;
+      font-size: 0.9rem;
+      text-decoration: none;
+      flex: 1;
+    }
+
+    .bottom-nav a.active {
+      color: #007bff;
+    }
+
+    .bottom-nav i {
+      display: block;
+      font-size: 1.4rem;
+      margin-bottom: 4px;
     }
   </style>
 </head>
 <body>
 
-<div class="navbar">
-  WaveRide Homepage |
-  <a href="booking.html">Book</a>
-  <a href="mybookings.html">My Bookings</a>
-  <a href="profile.html">Profile</a>
-</div>
+<h2>Book Your Ride</h2>
 
 <div class="container">
-  <h2>Book Your Ride</h2>
   <form id="bookingForm">
-    <label for="category">Select Category</label>
+    <label for="category">Vehicle Category</label>
     <select id="category" required>
-      <option value="">-- Select --</option>
+      <option value="">-- Choose --</option>
       <option value="Scooter">Scooter</option>
       <option value="Bikes under 150cc">Bikes under 150cc</option>
       <option value="Premium">Premium</option>
     </select>
 
     <label for="pickupDate">Pickup Date</label>
-    <input type="date" id="pickupDate" required min="" />
+    <input type="date" id="pickupDate" required />
 
     <label for="pickupTime">Pickup Time</label>
     <select id="pickupTime" required></select>
 
     <label for="duration">Duration</label>
     <select id="duration" required>
-      <option value="3">3 Hours</option>
-      <option value="6">6 Hours</option>
-      <option value="24">1 Day</option>
-      <option value="168">7 Days</option>
-      <option value="720">30 Days</option>
+      <option value="3">3 HRS</option>
+      <option value="6">6 HRS</option>
+      <option value="24">1 DAY</option>
+      <option value="168">7 DAYS</option>
+      <option value="720">30 DAYS</option>
     </select>
 
     <button type="submit">Check Availability</button>
   </form>
 
-  <div id="bikeList"></div>
+  <div id="bikeList" class="bike-list"></div>
+</div>
+
+<!-- Bottom Navbar -->
+<div class="bottom-nav">
+  <a href="index.html"><i class="fas fa-home"></i>Home</a>
+  <a href="booking.html" class="active"><i class="fas fa-motorcycle"></i>Book</a>
+  <a href="mybookings.html"><i class="fas fa-list"></i>Bookings</a>
+  <a href="profile.html"><i class="fas fa-user"></i>Profile</a>
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-  import { getDatabase, ref, onValue, push, set, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+  import { getDatabase, ref, get, push, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
@@ -123,21 +160,24 @@
     projectId: "waveride-bike-rental-service",
     storageBucket: "waveride-bike-rental-service.appspot.com",
     messagingSenderId: "341920732961",
-    appId: "1:341920732961:web:3967e19131f8984f0f1060",
-    measurementId: "G-59M75TD99E"
+    appId: "1:341920732961:web:3967e19131f8984f0f1060"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const auth = getAuth();
 
+  // Populate Pickup Time
   const pickupTimeSelect = document.getElementById("pickupTime");
-  for (let hour = 8; hour <= 23; hour++) {
+  for (let h = 8; h <= 23; h++) {
     ["00", "30"].forEach(min => {
       const t = new Date();
-      t.setHours(hour);
-      t.setMinutes(min);
-      pickupTimeSelect.innerHTML += `<option value="${hour}:${min}">${t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</option>`;
+      t.setHours(h, min);
+      const str = t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+      const opt = document.createElement("option");
+      opt.value = `${h}:${min}`;
+      opt.text = str;
+      pickupTimeSelect.appendChild(opt);
     });
   }
 
@@ -145,95 +185,74 @@
 
   document.getElementById("bookingForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-
     const category = document.getElementById("category").value;
-    const pickupDate = document.getElementById("pickupDate").value;
-    const pickupTime = document.getElementById("pickupTime").value;
+    const date = document.getElementById("pickupDate").value;
+    const time = document.getElementById("pickupTime").value;
     const duration = parseInt(document.getElementById("duration").value);
+    const [hour, minute] = time.split(":");
 
-    const [hour, minute] = pickupTime.split(":");
-    const pickupDateTime = new Date(`${pickupDate}T${hour.padStart(2, '0')}:${minute}:00`);
-    const dropoffDateTime = new Date(pickupDateTime.getTime() + duration * 60 * 60 * 1000);
+    const pickup = new Date(`${date}T${hour.padStart(2, '0')}:${minute}:00`);
+    const dropoff = new Date(pickup.getTime() + duration * 60 * 60 * 1000);
 
-    const user = auth.currentUser;
-    if (!user) {
-      alert("You must be logged in to book.");
-      return;
-    }
+    const uid = auth.currentUser?.uid;
+    if (!uid) return alert("Please log in first.");
 
     const vehicleRef = ref(db, `vehicles/${category}`);
-    const vehicleSnapshot = await get(vehicleRef);
-    const vehicles = vehicleSnapshot.exists() ? vehicleSnapshot.val() : {};
+    const snapshot = await get(vehicleRef);
+    const vehicles = snapshot.val();
 
-    const festiveSnap = await get(ref(db, 'festiveRates'));
-    const festiveData = festiveSnap.exists() ? festiveSnap.val() : {};
-    const now = new Date().toISOString().split("T")[0];
-
-    const festiveActive = festiveData.enabled &&
-      now >= festiveData.from &&
-      now <= festiveData.to;
-
-    const customFare = festiveActive && festiveData.customFares?.[category];
-
-    const bikeList = document.getElementById("bikeList");
-    bikeList.innerHTML = "<h3>Checking Availability...</h3>";
-
-    const availableBikes = [];
-
-    for (const bike in vehicles) {
-      const bikeData = vehicles[bike];
-      if (!bikeData.isActive) continue;
-
-      const bookingRef = ref(db, `bookings/${bike}`);
-      const bookings = await get(bookingRef);
-
-      let isAvailable = true;
-
-      if (bookings.exists()) {
-        bookings.forEach(b => {
-          const data = b.val();
-          const existingStart = new Date(data.pickup);
-          const existingEnd = new Date(data.dropoff);
-          if (pickupDateTime < existingEnd && dropoffDateTime > existingStart) {
-            isAvailable = false;
-          }
+    const available = [];
+    for (let v in vehicles) {
+      const vehicle = vehicles[v];
+      if (vehicle.isActive !== false) {
+        const bookingsRef = ref(db, `bookings/${v}`);
+        const bookingsSnap = await get(bookingsRef);
+        let isAvailable = true;
+        bookingsSnap.forEach(child => {
+          const data = child.val();
+          const start = new Date(data.pickup);
+          const end = new Date(data.dropoff);
+          if (pickup < end && dropoff > start) isAvailable = false;
         });
-      }
-
-      if (isAvailable) {
-        const fare = customFare?.[duration] || bikeData.fare || 300;
-        availableBikes.push({ name: bike, fare });
+        if (isAvailable) available.push({ name: v, ...vehicle });
       }
     }
 
-    if (availableBikes.length === 0) {
-      bikeList.innerHTML = `<p>No bikes available in this category and slot.</p>`;
-    } else {
-      bikeList.innerHTML = "<h3>Available Vehicles</h3>" + availableBikes.map(b => `
+    const list = document.getElementById("bikeList");
+    if (available.length) {
+      list.innerHTML = "<h3>Available Vehicles</h3>" + available.map(b => `
         <div class="bike-item">
           <strong>${b.name}</strong><br/>
-          <span>Fare: ₹${b.fare}</span><br/>
-          <button onclick="book('${b.name}', '${pickupDateTime.toISOString()}', '${dropoffDateTime.toISOString()}', ${b.fare})">Book Now</button>
+          <img src="${b.image || 'https://via.placeholder.com/150'}" alt="${b.name}"><br/>
+          <button onclick="book('${b.name}', '${pickup.toISOString()}', '${dropoff.toISOString()}')">Book</button>
         </div>
       `).join("");
+    } else {
+      list.innerHTML = `<p>No vehicles available for selected slot.</p>`;
     }
   });
 
-  window.book = async (bike, pickup, dropoff, fare) => {
-    const user = auth.currentUser;
-    if (!user) return alert("Login to continue booking.");
-
-    const bookingRef = push(ref(db, `bookings/${bike}`));
+  window.book = async (name, pickup, dropoff) => {
+    const uid = auth.currentUser.uid;
+    const bookingRef = push(ref(db, `bookings/${name}`));
     await set(bookingRef, {
-      user: user.uid,
+      user: uid,
       pickup,
       dropoff,
-      fare,
       status: "booked"
     });
-    alert("Booking confirmed!");
-    window.location.href = "success.html";
+    alert("Booking Confirmed!");
+    location.href = "success.html";
   };
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      alert("Please login to continue.");
+      window.location.href = "index.html";
+    }
+  });
 </script>
+
 </body>
 </html>
+
