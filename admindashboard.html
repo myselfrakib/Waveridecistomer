@@ -21,9 +21,9 @@
   <h2>WaveRide Admin Dashboard</h2>
   <nav>
     <button onclick="showSection('vehicles')">Manage Vehicles</button>
-    <button onclick="showSection('bookings')">View Bookings</button>
-    <button onclick="showSection('users')">View Users</button>
-    <button onclick="showSection('rates')">Change Rates</button>
+    <button onclick="showSection('bookings'); renderBookings();">View Bookings</button>
+    <button onclick="showSection('users'); renderUsers();">View Users</button>
+    <button onclick="showSection('rates'); renderRates();">Change Rates</button>
     <button onclick="showSection('addVehicle')">Add Vehicle</button>
   </nav>
 
@@ -203,25 +203,18 @@
 
     window.addVehicle = function (event) {
       event.preventDefault();
-      const category = document.getElementById('newCategory').value;
-      const name = document.getElementById('newVehicle').value;
-      const fare = Number(document.getElementById('newFare').value);
-      set(ref(db, `vehicles/${category}/${name}`), {
-        fare: fare,
-        isActive: true
-      }).then(() => alert('Vehicle added successfully.'));
+      const category = document.getElementById('newCategory').value.trim();
+      const vehicle = document.getElementById('newVehicle').value.trim();
+      const fare = parseInt(document.getElementById('newFare').value);
+      if (!category || !vehicle || isNaN(fare)) return;
+
+      const vehicleRef = ref(db, `vehicles/${category}/${vehicle}`);
+      set(vehicleRef, { fare: fare, isActive: true })
+        .then(() => alert('Vehicle added successfully.'))
+        .catch(err => alert('Error adding vehicle: ' + err));
     };
 
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        renderVehicles();
-        renderBookings();
-        renderUsers();
-        renderRates();
-      } else {
-        alert("You must be logged in as admin to view this page.");
-      }
-    });
+    renderVehicles();
   </script>
 </body>
 </html>
