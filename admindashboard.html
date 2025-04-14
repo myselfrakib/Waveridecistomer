@@ -51,7 +51,7 @@
       display: block;
     }
 
-    /* You can add your own CSS for styling here */
+    /* Add your own CSS for styling here */
   </style>
 </head>
 <body>
@@ -69,40 +69,57 @@
   <!-- Sections -->
   <div id="vehicles" class="section">
     <h3>Manage Vehicles</h3>
-    <p>Here you can manage the vehicles available for rent.</p>
-    <!-- Add content to manage vehicles -->
+    <ul id="vehicleList">
+      <!-- Vehicle list will be populated by Firebase data -->
+    </ul>
+    <button onclick="showAddVehicleForm()">Add New Vehicle</button>
   </div>
 
   <div id="bookings" class="section">
     <h3>View Bookings</h3>
-    <p>Here you can view and manage all bookings.</p>
-    <!-- Add content to view bookings -->
+    <ul id="bookingList">
+      <!-- Booking list will be populated by Firebase data -->
+    </ul>
   </div>
 
   <div id="users" class="section">
     <h3>View Users</h3>
-    <p>Here you can view and manage user details.</p>
-    <!-- Add content to manage users -->
+    <ul id="userList">
+      <!-- User list will be populated by Firebase data -->
+    </ul>
   </div>
 
   <div id="rates" class="section">
     <h3>Change Rates</h3>
-    <p>Here you can adjust rental rates.</p>
-    <!-- Add content to change rates -->
+    <form id="rateForm">
+      <label for="rate">Set Rate: ₹</label>
+      <input type="number" id="rateInput" required />
+      <button type="submit">Update Rate</button>
+    </form>
   </div>
 
   <div id="addVehicle" class="section">
     <h3>Add Vehicle</h3>
-    <p>Here you can add new vehicles to the fleet.</p>
-    <!-- Add content to add new vehicles -->
+    <form id="addVehicleForm">
+      <label for="vehicleName">Vehicle Name:</label>
+      <input type="text" id="vehicleName" required /><br><br>
+
+      <label for="vehicleCategory">Category:</label>
+      <input type="text" id="vehicleCategory" required /><br><br>
+
+      <label for="vehicleRate">Rate (₹):</label>
+      <input type="number" id="vehicleRate" required /><br><br>
+
+      <button type="submit">Add Vehicle</button>
+    </form>
   </div>
 
   <!-- Firebase Scripts -->
   <script type="module">
     // Firebase SDK imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getDatabase, ref, onValue, update, remove, set, push } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getDatabase, ref, onValue, set, push, update } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
     // Firebase config
     const firebaseConfig = {
@@ -140,9 +157,120 @@
 
       // Optionally, you can display the vehicles section by default
       showSection('vehicles');
+
+      // Load data from Firebase
+      loadVehicles();
+      loadBookings();
+      loadUsers();
+      loadRates();
+
+      // Handle the rate form submission
+      document.getElementById('rateForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const newRate = document.getElementById('rateInput').value;
+        updateRate(newRate);
+      });
+
+      // Handle the Add Vehicle form submission
+      document.getElementById('addVehicleForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const vehicleName = document.getElementById('vehicleName').value;
+        const vehicleCategory = document.getElementById('vehicleCategory').value;
+        const vehicleRate = document.getElementById('vehicleRate').value;
+
+        addNewVehicle(vehicleName, vehicleCategory, vehicleRate);
+      });
     });
 
-    // Your additional Firebase logic and functions to handle vehicle, booking, user, rate management goes here
+    // Firebase functions for managing vehicles
+    function loadVehicles() {
+      const vehicleListRef = ref(db, 'vehicles/');
+      onValue(vehicleListRef, (snapshot) => {
+        const vehicles = snapshot.val();
+        const vehicleList = document.getElementById('vehicleList');
+        vehicleList.innerHTML = ''; // Clear existing list
+        for (const key in vehicles) {
+          if (vehicles.hasOwnProperty(key)) {
+            const vehicle = vehicles[key];
+            const li = document.createElement('li');
+            li.textContent = `${vehicle.name} - ${vehicle.category} - ₹${vehicle.rate}`;
+            vehicleList.appendChild(li);
+          }
+        }
+      });
+    }
+
+    function addNewVehicle(name, category, rate) {
+      const vehicleRef = ref(db, 'vehicles/');
+      const newVehicleRef = push(vehicleRef);
+      set(newVehicleRef, {
+        name: name,
+        category: category,
+        rate: rate
+      }).then(() => {
+        alert('New vehicle added successfully!');
+        loadVehicles(); // Reload the vehicle list
+      }).catch((error) => {
+        alert('Error adding vehicle: ' + error.message);
+      });
+    }
+
+    // Firebase functions for managing bookings
+    function loadBookings() {
+      const bookingListRef = ref(db, 'bookings/');
+      onValue(bookingListRef, (snapshot) => {
+        const bookings = snapshot.val();
+        const bookingList = document.getElementById('bookingList');
+        bookingList.innerHTML = ''; // Clear existing list
+        for (const key in bookings) {
+          if (bookings.hasOwnProperty(key)) {
+            const booking = bookings[key];
+            const li = document.createElement('li');
+            li.textContent = `${booking.user} booked ${booking.vehicle} for ₹${booking.amount}`;
+            bookingList.appendChild(li);
+          }
+        }
+      });
+    }
+
+    // Firebase functions for managing users
+    function loadUsers() {
+      const userListRef = ref(db, 'users/');
+      onValue(userListRef, (snapshot) => {
+        const users = snapshot.val();
+        const userList = document.getElementById('userList');
+        userList.innerHTML = ''; // Clear existing list
+        for (const key in users) {
+          if (users.hasOwnProperty(key)) {
+            const user = users[key];
+            const li = document.createElement('li');
+            li.textContent = `${user.name} - ${user.phone}`;
+            userList.appendChild(li);
+          }
+        }
+      });
+    }
+
+    // Firebase function for changing rates
+    function loadRates() {
+      const rateRef = ref(db, 'rates/');
+      onValue(rateRef, (snapshot) => {
+        const rates = snapshot.val();
+        document.getElementById('rateInput').value = rates.standardRate || ''; // Default rate if not set
+      });
+    }
+
+    function updateRate(newRate) {
+      const rateRef = ref(db, 'rates/');
+      update(rateRef, {
+        standardRate: newRate
+      }).then(() => {
+        alert('Rate updated successfully!');
+      }).catch((error) => {
+        alert('Error updating rate: ' + error.message);
+      });
+    }
+
   </script>
 </body>
 </html>
