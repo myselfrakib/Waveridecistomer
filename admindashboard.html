@@ -148,8 +148,13 @@
         const list = document.getElementById('userList');
         list.innerHTML = '';
         for (const id in data) {
+          const user = data[id];
           const li = document.createElement('li');
-          li.textContent = JSON.stringify(data[id]);
+          li.innerHTML = `
+            <strong>Name:</strong> ${user.name} <br />
+            <strong>Phone:</strong> ${user.phone} <br />
+            <strong>User ID:</strong> ${id} <br />
+          `;
           list.appendChild(li);
         }
       });
@@ -203,17 +208,15 @@
 
     window.addVehicle = function (event) {
       event.preventDefault();
-      const category = document.getElementById('newCategory').value.trim();
-      const vehicle = document.getElementById('newVehicle').value.trim();
-      const fare = parseInt(document.getElementById('newFare').value);
-      if (!category || !vehicle || isNaN(fare)) return;
-
-      const vehicleRef = ref(db, `vehicles/${category}/${vehicle}`);
-      set(vehicleRef, { fare: fare, isActive: true })
-        .then(() => alert('Vehicle added successfully.'))
+      const category = document.getElementById('newCategory').value;
+      const vehicle = document.getElementById('newVehicle').value;
+      const fare = document.getElementById('newFare').value;
+      set(ref(db, `vehicles/${category}/${vehicle}`), { fare: fare, isActive: true })
+        .then(() => alert('Vehicle added successfully!'))
         .catch(err => alert('Error adding vehicle: ' + err));
     };
 
+    // Load all vehicle data on dashboard load
     renderVehicles();
   </script>
 </body>
