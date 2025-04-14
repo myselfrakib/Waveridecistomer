@@ -2,275 +2,266 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WaveRide Admin Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
-    /* Basic Styles */
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      margin: 0;
-      padding: 0;
+      background: linear-gradient(to right, #3f87a6, #ebf8e1);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-
-    h2 {
-      text-align: center;
-      margin-top: 20px;
+    .card {
+      border-radius: 1rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
-
-    nav {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-    }
-
-    button {
-      background-color: #007bff;
+    .card-header {
+      background-color: #0d6efd;
       color: white;
-      border: none;
-      padding: 10px 20px;
-      margin: 5px;
-      cursor: pointer;
-      border-radius: 5px;
     }
-
-    button:hover {
-      background-color: #0056b3;
+    .logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
     }
-
-    .section {
-      display: none;
-      margin-top: 20px;
-      padding: 20px;
-      background-color: white;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+    .nav-tabs .nav-link.active {
+      background-color: #0d6efd;
+      color: white;
     }
-
-    .section.active {
-      display: block;
-    }
-
-    /* Add your own CSS for styling here */
   </style>
 </head>
 <body>
-  <h2>WaveRide Admin Dashboard</h2>
 
-  <!-- Navigation -->
-  <nav>
-    <button id="vehiclesBtn">Manage Vehicles</button>
-    <button id="bookingsBtn">View Bookings</button>
-    <button id="usersBtn">View Users</button>
-    <button id="ratesBtn">Change Rates</button>
-    <button id="addVehicleBtn">Add Vehicle</button>
-  </nav>
+<div class="container py-4 position-relative">
+  <button class="btn btn-danger logout-btn" onclick="logout()">Logout <i class="fas fa-sign-out-alt"></i></button>
 
-  <!-- Sections -->
-  <div id="vehicles" class="section">
-    <h3>Manage Vehicles</h3>
-    <ul id="vehicleList">
-      <!-- Vehicle list will be populated by Firebase data -->
-    </ul>
-    <button onclick="showAddVehicleForm()">Add New Vehicle</button>
+  <div class="text-center mb-4">
+    <h1 class="text-primary">WaveRide Admin Dashboard</h1>
+    <p class="text-muted">Manage Bookings, Users, Vehicles, and Fares</p>
   </div>
 
-  <div id="bookings" class="section">
-    <h3>View Bookings</h3>
-    <ul id="bookingList">
-      <!-- Booking list will be populated by Firebase data -->
-    </ul>
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#bookings">Bookings</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#users">Users</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vehicles">Vehicles</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#fare">Fare Management</button></li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- Bookings Tab -->
+    <div class="tab-pane fade show active" id="bookings">
+      <div class="card">
+        <div class="card-header">All Bookings</div>
+        <div class="card-body table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Vehicle</th>
+                <th>User</th>
+                <th>Pickup</th>
+                <th>Dropoff</th>
+                <th>Fare</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="bookingsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Tab -->
+    <div class="tab-pane fade" id="users">
+      <div class="card">
+        <div class="card-header">Registered Users</div>
+        <div class="card-body table-responsive">
+          <table class="table table-striped">
+            <thead><tr><th>User ID</th><th>Name</th><th>Phone</th></tr></thead>
+            <tbody id="usersTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vehicles Tab -->
+    <div class="tab-pane fade" id="vehicles">
+      <div class="card">
+        <div class="card-header">Available Vehicles</div>
+        <div class="card-body table-responsive">
+          <table class="table table-striped">
+            <thead><tr><th>ID</th><th>Type</th><th>Model</th><th>Status</th></tr></thead>
+            <tbody id="vehiclesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fare Management Tab -->
+    <div class="tab-pane fade" id="fare">
+      <div class="card">
+        <div class="card-header">Fare Management</div>
+        <div class="card-body">
+          <form id="fareForm">
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label>Vehicle</label>
+                <select class="form-select" id="fareVehicleType"></select>
+              </div>
+              <div class="col-md-4">
+                <label>From Date</label>
+                <input type="date" class="form-control" id="fareFromDate">
+              </div>
+              <div class="col-md-4">
+                <label>To Date</label>
+                <input type="date" class="form-control" id="fareToDate">
+              </div>
+            </div>
+            <label>3HR</label><input type="number" class="form-control mb-2" id="fare3">
+            <label>6HR</label><input type="number" class="form-control mb-2" id="fare6">
+            <label>1DAY</label><input type="number" class="form-control mb-2" id="fare24">
+            <label>7DAYS</label><input type="number" class="form-control mb-2" id="fare168">
+            <label>30DAYS</label><input type="number" class="form-control" id="fare720">
+            <button class="btn btn-primary mt-3 w-100" type="submit">Update Fare</button>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
+</div>
 
-  <div id="users" class="section">
-    <h3>View Users</h3>
-    <ul id="userList">
-      <!-- User list will be populated by Firebase data -->
-    </ul>
-  </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+  import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
-  <div id="rates" class="section">
-    <h3>Change Rates</h3>
-    <form id="rateForm">
-      <label for="rate">Set Rate: ₹</label>
-      <input type="number" id="rateInput" required />
-      <button type="submit">Update Rate</button>
-    </form>
-  </div>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
+    authDomain: "waveride-bike-rental-service.firebaseapp.com",
+    databaseURL: "https://waveride-bike-rental-service-default-rtdb.firebaseio.com",
+    projectId: "waveride-bike-rental-service",
+    storageBucket: "waveride-bike-rental-service.appspot.com",
+    messagingSenderId: "341920732961",
+    appId: "1:341920732961:web:3967e19131f8984f0f1060"
+  };
 
-  <div id="addVehicle" class="section">
-    <h3>Add Vehicle</h3>
-    <form id="addVehicleForm">
-      <label for="vehicleName">Vehicle Name:</label>
-      <input type="text" id="vehicleName" required /><br><br>
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth();
 
-      <label for="vehicleCategory">Category:</label>
-      <input type="text" id="vehicleCategory" required /><br><br>
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      alert("Login required.");
+      window.location.href = "index.html";
+    } else {
+      const adminsRef = ref(db, "admins");
+      onValue(adminsRef, (snapshot) => {
+        const admins = snapshot.val();
+        let isAdmin = false;
 
-      <label for="vehicleRate">Rate (₹):</label>
-      <input type="number" id="vehicleRate" required /><br><br>
+        for (const key in admins) {
+          const a = admins[key];
+          if (a.email === user.email && (a.role === "admin" || a.role === "superadmin")) {
+            isAdmin = true;
+            break;
+          }
+        }
 
-      <button type="submit">Add Vehicle</button>
-    </form>
-  </div>
-
-  <!-- Firebase Scripts -->
-  <script type="module">
-    // Firebase SDK imports
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getDatabase, ref, onValue, set, push, update } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
-      authDomain: "waveride-bike-rental-service.firebaseapp.com",
-      databaseURL: "https://waveride-bike-rental-service-default-rtdb.firebaseio.com",
-      projectId: "waveride-bike-rental-service",
-      storageBucket: "waveride-bike-rental-service.firebasestorage.app",
-      messagingSenderId: "341920732961",
-      appId: "1:341920732961:web:3967e19131f8984f0f1060",
-      measurementId: "G-59M75TD99E"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase();
-    const auth = getAuth();
-
-    // Function to show sections based on the button clicked
-    function showSection(id) {
-      // Hide all sections
-      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-      // Show the clicked section
-      document.getElementById(id).classList.add('active');
+        if (isAdmin) {
+          loadAdminData();
+        } else {
+          alert("Access denied.");
+          window.location.href = "index.html";
+        }
+      }, { onlyOnce: true });
     }
+  });
 
-    // Wait until the DOM is fully loaded
-    window.addEventListener('DOMContentLoaded', () => {
-      // Add event listeners to the buttons
-      document.getElementById('vehiclesBtn').onclick = () => showSection('vehicles');
-      document.getElementById('bookingsBtn').onclick = () => showSection('bookings');
-      document.getElementById('usersBtn').onclick = () => showSection('users');
-      document.getElementById('ratesBtn').onclick = () => showSection('rates');
-      document.getElementById('addVehicleBtn').onclick = () => showSection('addVehicle');
+  function loadAdminData() {
+    const vehiclesRef = ref(db, "vehicles");
+    const bookingsRef = ref(db, "bookings");
+    const usersRef = ref(db, "users");
 
-      // Optionally, you can display the vehicles section by default
-      showSection('vehicles');
-
-      // Load data from Firebase
-      loadVehicles();
-      loadBookings();
-      loadUsers();
-      loadRates();
-
-      // Handle the rate form submission
-      document.getElementById('rateForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const newRate = document.getElementById('rateInput').value;
-        updateRate(newRate);
-      });
-
-      // Handle the Add Vehicle form submission
-      document.getElementById('addVehicleForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const vehicleName = document.getElementById('vehicleName').value;
-        const vehicleCategory = document.getElementById('vehicleCategory').value;
-        const vehicleRate = document.getElementById('vehicleRate').value;
-
-        addNewVehicle(vehicleName, vehicleCategory, vehicleRate);
-      });
+    const vehiclesTable = document.getElementById("vehiclesTable");
+    const fareVehicleType = document.getElementById("fareVehicleType");
+    onValue(vehiclesRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      vehiclesTable.innerHTML = "";
+      fareVehicleType.innerHTML = "<option value=''>Select Vehicle</option>";
+      for (let id in data) {
+        const v = data[id];
+        vehiclesTable.innerHTML += `<tr><td>${id}</td><td>${v.type}</td><td>${v.model}</td><td>${v.status}</td></tr>`;
+        fareVehicleType.innerHTML += `<option value="${id}">${v.model}</option>`;
+      }
     });
 
-    // Firebase functions for managing vehicles
-    function loadVehicles() {
-      const vehicleListRef = ref(db, 'vehicles/');
-      onValue(vehicleListRef, (snapshot) => {
-        const vehicles = snapshot.val();
-        const vehicleList = document.getElementById('vehicleList');
-        vehicleList.innerHTML = ''; // Clear existing list
-        for (const key in vehicles) {
-          if (vehicles.hasOwnProperty(key)) {
-            const vehicle = vehicles[key];
-            const li = document.createElement('li');
-            li.textContent = `${vehicle.name} - ${vehicle.category} - ₹${vehicle.rate}`;
-            vehicleList.appendChild(li);
-          }
+    const bookingsTable = document.getElementById("bookingsTable");
+    onValue(bookingsRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      bookingsTable.innerHTML = "";
+      for (let vehicle in data) {
+        for (let bid in data[vehicle]) {
+          const b = data[vehicle][bid];
+          bookingsTable.innerHTML += `
+            <tr>
+              <td>${vehicle}</td>
+              <td>${b.user}</td>
+              <td>${new Date(b.pickup).toLocaleString()}</td>
+              <td>${new Date(b.dropoff).toLocaleString()}</td>
+              <td>₹${b.fare}</td>
+              <td>${b.status}</td>
+              <td><button class="btn btn-sm btn-danger" onclick="cancelBooking('${vehicle}', '${bid}')">Cancel</button></td>
+            </tr>`;
         }
-      });
-    }
+      }
+    });
 
-    function addNewVehicle(name, category, rate) {
-      const vehicleRef = ref(db, 'vehicles/');
-      const newVehicleRef = push(vehicleRef);
-      set(newVehicleRef, {
-        name: name,
-        category: category,
-        rate: rate
-      }).then(() => {
-        alert('New vehicle added successfully!');
-        loadVehicles(); // Reload the vehicle list
-      }).catch((error) => {
-        alert('Error adding vehicle: ' + error.message);
-      });
-    }
+    const usersTable = document.getElementById("usersTable");
+    onValue(usersRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      usersTable.innerHTML = "";
+      for (let uid in data) {
+        const u = data[uid];
+        usersTable.innerHTML += `<tr><td>${uid}</td><td>${u.name || "-"}</td><td>${u.phone || "-"}</td></tr>`;
+      }
+    });
 
-    // Firebase functions for managing bookings
-    function loadBookings() {
-      const bookingListRef = ref(db, 'bookings/');
-      onValue(bookingListRef, (snapshot) => {
-        const bookings = snapshot.val();
-        const bookingList = document.getElementById('bookingList');
-        bookingList.innerHTML = ''; // Clear existing list
-        for (const key in bookings) {
-          if (bookings.hasOwnProperty(key)) {
-            const booking = bookings[key];
-            const li = document.createElement('li');
-            li.textContent = `${booking.user} booked ${booking.vehicle} for ₹${booking.amount}`;
-            bookingList.appendChild(li);
-          }
+    document.getElementById("fareForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const id = document.getElementById("fareVehicleType").value;
+      const from = document.getElementById("fareFromDate").value;
+      const to = document.getElementById("fareToDate").value;
+      const fareData = {
+        from,
+        to,
+        durations: {
+          3: Number(document.getElementById("fare3").value),
+          6: Number(document.getElementById("fare6").value),
+          24: Number(document.getElementById("fare24").value),
+          168: Number(document.getElementById("fare168").value),
+          720: Number(document.getElementById("fare720").value)
         }
-      });
-    }
+      };
+      update(ref(db, `fareRules/${id}`), fareData)
+        .then(() => alert("Fare updated"))
+        .catch(err => alert("Error: " + err.message));
+    });
+  }
 
-    // Firebase functions for managing users
-    function loadUsers() {
-      const userListRef = ref(db, 'users/');
-      onValue(userListRef, (snapshot) => {
-        const users = snapshot.val();
-        const userList = document.getElementById('userList');
-        userList.innerHTML = ''; // Clear existing list
-        for (const key in users) {
-          if (users.hasOwnProperty(key)) {
-            const user = users[key];
-            const li = document.createElement('li');
-            li.textContent = `${user.name} - ${user.phone}`;
-            userList.appendChild(li);
-          }
-        }
-      });
+  window.cancelBooking = function (vehicle, bid) {
+    if (confirm("Cancel this booking?")) {
+      remove(ref(db, `bookings/${vehicle}/${bid}`))
+        .then(() => alert("Booking cancelled"))
+        .catch(err => alert("Error: " + err.message));
     }
+  };
 
-    // Firebase function for changing rates
-    function loadRates() {
-      const rateRef = ref(db, 'rates/');
-      onValue(rateRef, (snapshot) => {
-        const rates = snapshot.val();
-        document.getElementById('rateInput').value = rates.standardRate || ''; // Default rate if not set
-      });
-    }
-
-    function updateRate(newRate) {
-      const rateRef = ref(db, 'rates/');
-      update(rateRef, {
-        standardRate: newRate
-      }).then(() => {
-        alert('Rate updated successfully!');
-      }).catch((error) => {
-        alert('Error updating rate: ' + error.message);
-      });
-    }
-
-  </script>
+  window.logout = function () {
+    signOut(auth).then(() => {
+      window.location.href = "index.html";
+    });
+  };
+</script>
 </body>
 </html>
