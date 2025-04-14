@@ -56,6 +56,7 @@
           <table class="table table-striped">
             <thead>
               <tr>
+                <th>Sl. No.</th>
                 <th>Vehicle</th>
                 <th>User</th>
                 <th>Pickup</th>
@@ -77,7 +78,14 @@
         <div class="card-header">Registered Users</div>
         <div class="card-body table-responsive">
           <table class="table table-striped">
-            <thead><tr><th>User ID</th><th>Name</th><th>Phone</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Sl. No.</th>
+                <th>User ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+              </tr>
+            </thead>
             <tbody id="usersTable"></tbody>
           </table>
         </div>
@@ -90,7 +98,14 @@
         <div class="card-header">Available Vehicles</div>
         <div class="card-body table-responsive">
           <table class="table table-striped">
-            <thead><tr><th>ID</th><th>Type</th><th>Model</th><th>Status</th></tr></thead>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Model</th>
+                <th>Status</th>
+              </tr>
+            </thead>
             <tbody id="vehiclesTable"></tbody>
           </table>
         </div>
@@ -199,69 +214,56 @@
     const bookingsTable = document.getElementById("bookingsTable");
     onValue(bookingsRef, (snapshot) => {
       const data = snapshot.val() || {};
+      let serialNo = 1;
       bookingsTable.innerHTML = "";
-      for (let vehicle in data) {
-        for (let bid in data[vehicle]) {
-          const b = data[vehicle][bid];
-          bookingsTable.innerHTML += `
-            <tr>
-              <td>${vehicle}</td>
-              <td>${b.user}</td>
-              <td>${new Date(b.pickup).toLocaleString()}</td>
-              <td>${new Date(b.dropoff).toLocaleString()}</td>
-              <td>₹${b.fare}</td>
-              <td>${b.status}</td>
-              <td><button class="btn btn-sm btn-danger" onclick="cancelBooking('${vehicle}', '${bid}')">Cancel</button></td>
-            </tr>`;
-        }
+      for (let id in data) {
+        const b = data[id];
+        bookingsTable.innerHTML += `
+          <tr>
+            <td>${serialNo++}</td>
+            <td>${b.vehicle}</td>
+            <td>${b.user}</td>
+            <td>${b.pickup}</td>
+            <td>${b.dropoff}</td>
+            <td>${b.fare}</td>
+            <td>${b.status}</td>
+            <td><button class="btn btn-danger" onclick="cancelBooking('${id}')">Cancel</button></td>
+          </tr>
+        `;
       }
     });
 
     const usersTable = document.getElementById("usersTable");
     onValue(usersRef, (snapshot) => {
       const data = snapshot.val() || {};
+      let serialNo = 1;
       usersTable.innerHTML = "";
-      for (let uid in data) {
-        const u = data[uid];
-        usersTable.innerHTML += `<tr><td>${uid}</td><td>${u.name || "-"}</td><td>${u.phone || "-"}</td></tr>`;
+      for (let id in data) {
+        const u = data[id];
+        usersTable.innerHTML += `
+          <tr>
+            <td>${serialNo++}</td>
+            <td>${id}</td>
+            <td>${u.name}</td>
+            <td>${u.phone}</td>
+          </tr>
+        `;
       }
-    });
-
-    document.getElementById("fareForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const id = document.getElementById("fareVehicleType").value;
-      const from = document.getElementById("fareFromDate").value;
-      const to = document.getElementById("fareToDate").value;
-      const fareData = {
-        from,
-        to,
-        durations: {
-          3: Number(document.getElementById("fare3").value),
-          6: Number(document.getElementById("fare6").value),
-          24: Number(document.getElementById("fare24").value),
-          168: Number(document.getElementById("fare168").value),
-          720: Number(document.getElementById("fare720").value)
-        }
-      };
-      update(ref(db, `fareRules/${id}`), fareData)
-        .then(() => alert("Fare updated"))
-        .catch(err => alert("Error: " + err.message));
     });
   }
 
-  window.cancelBooking = function (vehicle, bid) {
-    if (confirm("Cancel this booking?")) {
-      remove(ref(db, `bookings/${vehicle}/${bid}`))
-        .then(() => alert("Booking cancelled"))
-        .catch(err => alert("Error: " + err.message));
+  function cancelBooking(bookingId) {
+    if (confirm("Are you sure you want to cancel this booking?")) {
+      const bookingRef = ref(db, "bookings/" + bookingId);
+      remove(bookingRef);
     }
-  };
+  }
 
-  window.logout = function () {
+  function logout() {
     signOut(auth).then(() => {
       window.location.href = "index.html";
     });
-  };
+  }
 </script>
 </body>
 </html>
