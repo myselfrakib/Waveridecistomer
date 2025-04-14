@@ -1,3 +1,4 @@
+<!-- Start of file -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -92,191 +93,138 @@
   </style>
 </head>
 <body>
-<nav>
-  <div><strong>WaveRide</strong></div>
-  <div>
-    <a href="index.html"><i class="fas fa-home"></i> Home</a>
-    <a href="mybookings.html"><i class="fas fa-calendar-check"></i> My Bookings</a>
-    <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+  <nav>
+    <div><strong>WaveRide</strong></div>
+    <div>
+      <a href="index.html"><i class="fas fa-home"></i> Home</a>
+      <a href="mybookings.html"><i class="fas fa-calendar-check"></i> My Bookings</a>
+      <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+    </div>
+  </nav>
+  <div class="container">
+    <h2>Book Your Ride</h2>
+    <form id="bookingForm">
+      <label for="category">Select Category</label>
+      <select id="category" required>
+        <option value="">-- Choose --</option>
+        <option value="Scooter">Scooter</option>
+        <option value="Bikes under 150cc">Bikes under 150cc</option>
+        <option value="Premium">Premium</option>
+      </select>
+
+      <label for="pickupDate">Pickup Date</label>
+      <input type="date" id="pickupDate" required min="" />
+
+      <label for="pickupTime">Pickup Time</label>
+      <select id="pickupTime" required></select>
+
+      <label for="duration">Duration</label>
+      <select id="duration" required>
+        <option value="3">3 HRS</option>
+        <option value="6">6 HRS</option>
+        <option value="24">1 DAY</option>
+        <option value="168">7 DAYS</option>
+        <option value="720">30 DAYS</option>
+      </select>
+
+      <button type="submit">Check Availability</button>
+    </form>
+    <div id="bikeList"></div>
   </div>
-</nav>
-<div class="container">
-  <h2>Book Your Ride</h2>
-  <form id="bookingForm">
-    <label for="category">Select Category</label>
-    <select id="category" required>
-      <option value="">-- Choose --</option>
-      <option value="Scooter">Scooter</option>
-      <option value="Bikes under 150cc">Bikes under 150cc</option>
-      <option value="Premium">Premium</option>
-    </select>
 
-    <label for="pickupDate">Pickup Date</label>
-    <input type="date" id="pickupDate" required min="" />
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getDatabase, ref, get, push, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-    <label for="pickupTime">Pickup Time</label>
-    <select id="pickupTime" required></select>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDsn16p7w8b-x8pEA_WTO5F2oUk4MHwcUc",
+      authDomain: "wavetravel-3c4c4.firebaseapp.com",
+      databaseURL: "https://wavetravel-3c4c4-default-rtdb.firebaseio.com",
+      projectId: "wavetravel-3c4c4",
+      storageBucket: "wavetravel-3c4c4.appspot.com",
+      messagingSenderId: "298226098137",
+      appId: "1:298226098137:web:720953b80e3e61c8bc43c8"
+    };
 
-    <label for="duration">Duration</label>
-    <select id="duration" required>
-      <option value="3">3 HRS</option>
-      <option value="6">6 HRS</option>
-      <option value="24">1 DAY</option>
-      <option value="168">7 DAYS</option>
-      <option value="720">30 DAYS</option>
-    </select>
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
 
-    <button type="submit">Check Availability</button>
-  </form>
-  <div class="bike-list" id="bikeList"></div>
-</div>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-  import { getDatabase, ref, get, push, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
-    authDomain: "waveride-bike-rental-service.firebaseapp.com",
-    databaseURL: "https://waveride-bike-rental-service-default-rtdb.firebaseio.com",
-    projectId: "waveride-bike-rental-service",
-    storageBucket: "waveride-bike-rental-service.appspot.com",
-    messagingSenderId: "341920732961",
-    appId: "1:341920732961:web:3967e19131f8984f0f1060",
-    measurementId: "G-59M75TD99E"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth();
-  const db = getDatabase(app);
-
-  const pickupTime = document.getElementById("pickupTime");
-  const today = new Date().toISOString().split("T")[0];
-  document.getElementById("pickupDate").min = today;
-
-  // Generate time slots from 8:00 AM to 11:00 PM
-  for (let h = 8; h <= 23; h++) {
-    ["00", "30"].forEach(min => {
-      const time = new Date();
-      time.setHours(h, parseInt(min));
-      const label = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-      const opt = document.createElement("option");
-      opt.value = `${h.toString().padStart(2, '0')}:${min}`;
-      opt.textContent = label;
-      pickupTime.appendChild(opt);
-    });
-  }
-
-  const form = document.getElementById("bookingForm");
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const user = auth.currentUser;
-    if (!user) {
-      alert("Please login to continue booking.");
-      return;
+    // Generate time slots
+    const pickupTime = document.getElementById("pickupTime");
+    for (let h = 8; h <= 23; h++) {
+      ["00", "30"].forEach(min => {
+        const label = `${String(h).padStart(2, '0')}:${min}`;
+        pickupTime.innerHTML += `<option value="${label}">${label}</option>`;
+      });
     }
 
-    const category = document.getElementById("category").value;
-    const date = document.getElementById("pickupDate").value;
-    const time = document.getElementById("pickupTime").value;
-    const duration = parseInt(document.getElementById("duration").value);
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("pickupDate").min = today;
 
-    const [h, m] = time.split(":");
-    const pickup = new Date(`${date}T${h}:${m}:00`);
-    const dropoff = new Date(pickup.getTime() + duration * 60 * 60 * 1000);
+    const fareRates = {
+      "3": 150,
+      "6": 300,
+      "24": 500,
+      "168": 3000,
+      "720": 8500
+    };
 
-    const isFestive = await checkFestive(pickup);
-    const fareData = await getFare(category, duration, isFestive);
-    const fare = fareData ?? 0;
+    document.getElementById("bookingForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const category = document.getElementById("category").value;
+      const pickupDate = document.getElementById("pickupDate").value;
+      const pickupTime = document.getElementById("pickupTime").value;
+      const duration = document.getElementById("duration").value;
 
-    const vehicleRef = ref(db, `vehicles/${category}`);
-    const snapshot = await get(vehicleRef);
+      const bikesRef = ref(db, 'vehicles/' + category);
+      const snapshot = await get(bikesRef);
+      const bikeList = document.getElementById("bikeList");
+      bikeList.innerHTML = "";
 
-    const bikeList = document.getElementById("bikeList");
-    bikeList.innerHTML = `<h3>Available Bikes</h3>`;
-
-    if (!snapshot.exists()) {
-      bikeList.innerHTML += "<p>No vehicles found.</p>";
-      return;
-    }
-
-    let availableCount = 0;
-    const vehicles = snapshot.val();
-
-    for (const key in vehicles) {
-      const v = vehicles[key];
-      if (v.isActive === false) continue;
-
-      const bookingsRef = ref(db, `bookings/${key}`);
-      const bookingsSnap = await get(bookingsRef);
-      let available = true;
-
-      if (bookingsSnap.exists()) {
-        const allBookings = bookingsSnap.val();
-        for (const bId in allBookings) {
-          const b = allBookings[bId];
-          const start = new Date(b.pickup);
-          const end = new Date(b.dropoff);
-          if (pickup < end && dropoff > start) {
-            available = false;
-            break;
+      if (snapshot.exists()) {
+        const bikes = snapshot.val();
+        Object.keys(bikes).forEach(bikeKey => {
+          const bike = bikes[bikeKey];
+          if (bike.isActive && bike.status === "enabled") {
+            const fare = fareRates[duration] || 0;
+            const div = document.createElement("div");
+            div.className = "bike-item";
+            div.innerHTML = `
+              <strong>${bikeKey}</strong><br>
+              <p>Fare: ₹${fare}</p>
+              <button onclick="bookBike('${bikeKey}', '${category}', '${pickupDate}', '${pickupTime}', ${duration}, ${fare})">Book Now</button>
+            `;
+            bikeList.appendChild(div);
           }
-        }
+        });
+      } else {
+        bikeList.innerHTML = "<p>No bikes available under this category.</p>";
       }
-
-      if (available) {
-        availableCount++;
-        bikeList.innerHTML += `
-          <div class="bike-item">
-            <strong>${v.name}</strong><br/>
-            <small>Fare: ₹${fare}</small><br/>
-            <button onclick="bookVehicle('${key}', '${pickup.toISOString()}', '${dropoff.toISOString()}', ${duration}, ${fare})">Book Now</button>
-          </div>`;
-      }
-    }
-
-    if (availableCount === 0) {
-      bikeList.innerHTML += "<p>No vehicles available in this category for the selected time slot.</p>";
-    }
-  });
-
-  window.bookVehicle = async (vehicleId, pickup, dropoff, duration, fare) => {
-    const user = auth.currentUser;
-    if (!user) {
-      alert("Please log in to continue.");
-      return;
-    }
-
-    const newRef = push(ref(db, `bookings/${vehicleId}`));
-    await set(newRef, {
-      user: user.uid,
-      pickup,
-      dropoff,
-      duration,
-      fare,
-      status: "booked"
     });
 
-    alert("Booking confirmed!");
-    window.location.href = "success.html";
-  };
-
-  async function checkFestive(date) {
-    const snap = await get(ref(db, 'festiveRates'));
-    if (!snap.exists()) return false;
-    const data = snap.val();
-    if (!data.enabled || !data.from || !data.to) return false;
-    const from = new Date(data.from);
-    const to = new Date(data.to);
-    return date >= from && date <= to;
-  }
-
-  async function getFare(category, duration, festive = false) {
-    const node = festive ? 'festiveRates/customFares' : 'fareRules';
-    const fareSnap = await get(ref(db, `${node}/${category}/durations/${duration}`));
-    return fareSnap.exists() ? fareSnap.val() : null;
-  }
-</script>
+    window.bookBike = async function(bikeName, category, date, time, duration, fare) {
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const bookingRef = push(ref(db, 'bookings/' + user.uid));
+          await set(bookingRef, {
+            bike: bikeName,
+            category: category,
+            pickupDate: date,
+            pickupTime: time,
+            duration: duration,
+            fare: fare,
+            status: "confirmed",
+            bookedAt: new Date().toISOString()
+          });
+          window.location.href = "success.html";
+        } else {
+          alert("Please login to complete your booking.");
+        }
+      });
+    };
+  </script>
 </body>
 </html>
+<!-- End of file -->
