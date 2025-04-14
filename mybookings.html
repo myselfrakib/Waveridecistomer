@@ -3,96 +3,169 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WaveRide - My Bookings</title>
-  <link rel="stylesheet" href="https://kit-pro.fontawesome.com/releases/v5.15.4/css/pro.min.css">
-  <script src="https://kit.fontawesome.com/a2d9d6b3f3.js" crossorigin="anonymous"></script>
+  <title>WaveRide | My Bookings</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     body {
+      margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to right, #4facfe, #00f2fe);
-      margin: 0;
-      padding-bottom: 80px;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
-    header {
-      text-align: center;
-      padding: 1rem;
+
+    .container {
+      flex: 1;
+      max-width: 600px;
+      margin: 20px auto 70px;
+      padding: 20px;
       background: #fff;
-      color: #007bff;
-      font-size: 1.5rem;
-      font-weight: bold;
-      border-bottom: 2px solid #ccc;
-    }
-    .booking {
-      background: #fff;
-      margin: 15px;
-      padding: 15px;
       border-radius: 12px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #007bff;
+    }
+
+    .booking {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      border-left: 5px solid #007bff;
+    }
+
     .booking p {
       margin: 5px 0;
-      font-size: 0.95rem;
     }
+
     .cancel-btn {
-      margin-top: 10px;
-      background: #ff4d4d;
+      background: #dc3545;
       color: white;
+      padding: 8px 10px;
       border: none;
-      padding: 8px 15px;
       border-radius: 6px;
+      margin-top: 10px;
       cursor: pointer;
-      font-weight: bold;
     }
-    .nav {
+
+    .cancel-btn:hover {
+      background: #b02a37;
+    }
+
+    .bottom-nav {
       position: fixed;
       bottom: 0;
+      left: 0;
       width: 100%;
-      background: #fff;
+      background-color: #fff;
       display: flex;
       justify-content: space-around;
       padding: 10px 0;
       box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-      z-index: 999;
-    }
-    .nav a {
-      text-align: center;
-      font-size: 13px;
-      color: #007bff;
-      text-decoration: none;
-      flex: 1;
-    }
-    .nav i {
-      font-size: 20px;
-      display: block;
-      margin-bottom: 3px;
+      z-index: 1000;
     }
 
-    @media (max-width: 600px) {
-      .booking {
-        margin: 10px;
+    .bottom-nav a {
+      text-decoration: none;
+      color: #007bff;
+      font-size: 14px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-weight: 500;
+    }
+
+    .bottom-nav a i {
+      font-size: 18px;
+      margin-bottom: 2px;
+    }
+
+    @media (min-width: 768px) {
+      .bottom-nav a {
+        font-size: 16px;
+      }
+      .bottom-nav a i {
+        font-size: 20px;
       }
     }
   </style>
 </head>
 <body>
 
-  <header><i class="fas fa-book"></i> My Bookings</header>
-
-  <div id="bookingsContainer"></div>
-
-  <div class="nav">
-    <a href="booking.html"><i class="fas fa-motorcycle"></i><span>Book Now</span></a>
-    <a href="mybookings.html"><i class="fas fa-calendar-alt"></i><span>Bookings</span></a>
-    <a href="profile.html"><i class="fas fa-user-circle"></i><span>Profile</span></a>
-    <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+  <div class="container">
+    <h2><i class="fas fa-history"></i> My Bookings</h2>
+    <div id="bookingList">Loading...</div>
   </div>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js"></script>
+ <!-- Bottom Navbar -->
+<style>
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    border-top: 1px solid #ddd;
+    z-index: 999;
+  }
 
-  <script>
+  .bottom-nav a {
+    color: #555;
+    text-decoration: none;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-grow: 1;
+    transition: all 0.3s ease;
+  }
+
+  .bottom-nav a i {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+
+  .bottom-nav a:hover,
+  .bottom-nav a.active {
+    color: #007bff;
+    font-weight: 600;
+  }
+
+  @media (min-width: 768px) {
+    .bottom-nav a {
+      font-size: 16px;
+    }
+
+    .bottom-nav a i {
+      font-size: 20px;
+    }
+  }
+</style>
+
+<div class="bottom-nav">
+  <a href="index.html"><i class="fas fa-home"></i>Home</a>
+  <a href="booking.html" class="active"><i class="fas fa-motorcycle"></i>Book</a>
+  <a href="mybookings.html"><i class="fas fa-list"></i>Bookings</a>
+  <a href="profile.html"><i class="fas fa-user"></i>Profile</a>
+</div>
+
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyBHKD70OH34uj7yA0tjBtQZuDbRcRiFins",
       authDomain: "waveride-bike-rental-service.firebaseapp.com",
@@ -103,53 +176,65 @@
       appId: "1:341920732961:web:3967e19131f8984f0f1060"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase();
+    const auth = getAuth();
 
-    function logout() {
-      auth.signOut().then(() => window.location.href = "index.html");
-    }
+    const bookingList = document.getElementById('bookingList');
 
-    auth.onAuthStateChanged(user => {
-      if (!user) return (window.location.href = "index.html");
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+
       const uid = user.uid;
-      const bookingsContainer = document.getElementById("bookingsContainer");
+      bookingList.innerHTML = "";
 
-      db.ref("bookings").once("value", snapshot => {
-        bookingsContainer.innerHTML = "";
-        snapshot.forEach(vehicleSnap => {
+      const bookingsRef = ref(db, "bookings");
+      onValue(bookingsRef, (snapshot) => {
+        bookingList.innerHTML = "";
+        let found = false;
+
+        snapshot.forEach((vehicleSnap) => {
           const vehicleName = vehicleSnap.key;
-          vehicleSnap.forEach(bookingSnap => {
+          vehicleSnap.forEach((bookingSnap) => {
             const booking = bookingSnap.val();
             if (booking.user === uid) {
-              const pickup = new Date(booking.pickup).toLocaleString("en-GB");
-              const dropoff = new Date(booking.dropoff).toLocaleString("en-GB");
-              bookingsContainer.innerHTML += `
-                <div class="booking">
-                  <p><strong>Vehicle:</strong> ${vehicleName}</p>
-                  <p><strong>Pickup:</strong> ${pickup}</p>
-                  <p><strong>Dropoff:</strong> ${dropoff}</p>
-                  <p><strong>Status:</strong> ${booking.status}</p>
-                  <p><strong>Fare:</strong> ₹${booking.fare}</p>
-                  <button class="cancel-btn" onclick="cancelBooking('${vehicleName}', '${bookingSnap.key}')">Cancel</button>
-                </div>
+              found = true;
+              const pickupDate = new Date(booking.pickup).toLocaleString();
+              const dropoffDate = new Date(booking.dropoff).toLocaleString();
+              const div = document.createElement("div");
+              div.className = "booking";
+              div.innerHTML = `
+                <p><strong>Vehicle:</strong> ${vehicleName}</p>
+                <p><strong>Pickup:</strong> ${pickupDate}</p>
+                <p><strong>Dropoff:</strong> ${dropoffDate}</p>
+                <p><strong>Fare:</strong> ₹${booking.fare}</p>
+                <p><strong>Status:</strong> ${booking.status}</p>
+                <button class="cancel-btn" onclick="cancelBooking('${vehicleName}', '${bookingSnap.key}')">
+                  Cancel Booking (50% refundable)
+                </button>
               `;
+              bookingList.appendChild(div);
             }
           });
         });
+
+        if (!found) {
+          bookingList.innerHTML = "<p>No bookings found.</p>";
+        }
       });
     });
 
-    function cancelBooking(vehicle, bookingId) {
-      if (confirm("Cancel this booking? 50% of the fare will be refunded.")) {
-        db.ref(`bookings/${vehicle}/${bookingId}`).update({ status: "cancelled" }).then(() => {
-          alert("Booking cancelled!");
-          location.reload();
+    window.cancelBooking = (vehicle, bookingId) => {
+      if (confirm("Are you sure you want to cancel this booking? 50% fare will be refunded.")) {
+        const bookingRef = ref(db, `bookings/${vehicle}/${bookingId}`);
+        remove(bookingRef).then(() => {
+          alert("Booking canceled successfully.");
         });
       }
-    }
+    };
   </script>
-
 </body>
 </html>
