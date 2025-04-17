@@ -1,98 +1,43 @@
+<!-- payment.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Payment - Waveride</title>
+  <title>WaveRide - Payment</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f5f5f5;
-    }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
-    }
-    img {
-      display: block;
-      margin: 20px auto;
-      width: 250px;
-      height: auto;
-    }
-    .amount, .details, .upload, .confirm {
-      margin: 20px 0;
-    }
-    .upload input, .confirm input {
-      display: block;
-      margin-top: 10px;
-    }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-      width: 100%;
-    }
-    button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f2f2f2; }
+    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+    img { display: block; margin: 20px auto; width: 250px; }
+    label { display: block; margin-top: 10px; }
+    input { width: 100%; margin-top: 5px; padding: 10px; }
+    button { margin-top: 20px; padding: 12px; background: #4CAF50; color: white; border: none; width: 100%; font-size: 16px; border-radius: 8px; }
+    .details { background: #f9f9f9; padding: 15px; margin-top: 20px; border-radius: 8px; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2 style="text-align:center;">Complete Your Payment</h2>
+  <h2>Complete Your Payment</h2>
 
-  <!-- QR Code -->
-  <div style="text-align: center;">
-    <img src="https://firebasestorage.googleapis.com/v0/b/waveride-bike-rental-service.firebasestorage.app/o/g%20biz%20image.jpg?alt=media&token=05eff2e3-aa04-4fa0-834d-37a9569b533e" alt="GPay QR Code">
-    <p><strong>Scan and Pay using GPay</strong></p>
-  </div>
+  <div class="details" id="bookingDetails"></div>
 
-  <!-- Amount Payable -->
-  <div class="amount" id="amountPayable">
-    <p><strong>Amount to Pay:</strong> ₹Loading...</p>
-  </div>
+  <img src="https://firebasestorage.googleapis.com/v0/b/waveride-bike-rental-service.firebasestorage.app/o/g%20biz%20image.jpg?alt=media&token=05eff2e3-aa04-4fa0-834d-37a9569b533e" alt="GPay QR Code">
+  <p style="text-align: center; font-size: 18px;">Amount: ₹<span id="fareAmount">0</span></p>
 
-  <!-- Booking Details -->
-  <div class="details" id="bookingDetails">
-    <h3>Booking Details</h3>
-    <p><strong>Vehicle:</strong> Loading...</p>
-    <p><strong>Booking Date:</strong> Loading...</p>
-    <p><strong>Duration:</strong> Loading...</p>
-  </div>
+  <label for="paymentScreenshot">Upload Payment Screenshot:</label>
+  <input type="file" id="paymentScreenshot" accept="image/*">
 
-  <!-- Upload Screenshot -->
-  <div class="upload">
-    <label><strong>Upload Payment Screenshot:</strong></label>
-    <input type="file" id="paymentScreenshot" accept="image/*">
-  </div>
+  <label>
+    <input type="checkbox" id="paymentCheckbox"> I have paid
+  </label>
 
-  <!-- Confirm Checkbox -->
-  <div class="confirm">
-    <label>
-      <input type="checkbox" id="confirmPayment">
-      I have completed the payment
-    </label>
-  </div>
-
-  <!-- Confirm Booking Button -->
-  <button id="confirmButton" disabled>Confirm Booking</button>
+  <button onclick="confirmBooking()">Confirm Booking</button>
 </div>
 
 <script>
-  // 🔥 Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyDsn16p7w8b-x8pEA_WTO5F2oUk4MHwcUc",
     authDomain: "wavetravel-3c4c4.firebaseapp.com",
@@ -102,92 +47,57 @@
     messagingSenderId: "298226098137",
     appId: "1:298226098137:web:720953b80e3e61c8bc43c8"
   };
-  
-  // Initialize Firebase
+
   firebase.initializeApp(firebaseConfig);
-  const storage = firebase.storage();
   const database = firebase.database();
+  const storage = firebase.storage();
 
-  // Booking Details from localStorage
-  const booking = JSON.parse(localStorage.getItem('currentBooking'));
+  const bookingData = JSON.parse(localStorage.getItem('pendingBooking'));
 
-  if (booking) {
-    document.getElementById('amountPayable').innerHTML = `
-      <p><strong>Amount to Pay:</strong> ₹${booking.amount}</p>
-    `;
-    document.getElementById('bookingDetails').innerHTML = `
-      <h3>Booking Details</h3>
-      <p><strong>Vehicle:</strong> ${booking.vehicle}</p>
-      <p><strong>Booking Date:</strong> ${booking.bookingDate}</p>
-      <p><strong>Duration:</strong> ${booking.duration}</p>
-    `;
-  } else {
-    alert('Booking details not found. Please book again.');
-    window.location.href = 'booking.html';
+  if (!bookingData) {
+    alert('No booking found. Please book again.');
+    window.location.href = "booking.html";
   }
 
-  // Enable Confirm Button if ready
-  const confirmCheckbox = document.getElementById('confirmPayment');
-  const screenshotInput = document.getElementById('paymentScreenshot');
-  const confirmButton = document.getElementById('confirmButton');
+  document.getElementById('fareAmount').innerText = bookingData.amount;
+  document.getElementById('bookingDetails').innerHTML = `
+    <strong>Vehicle:</strong> ${bookingData.vehicle}<br>
+    <strong>Booking Date:</strong> ${bookingData.bookingDate}<br>
+    <strong>Duration:</strong> ${bookingData.duration}<br>
+  `;
 
-  function validateForm() {
-    if (confirmCheckbox.checked && screenshotInput.files.length > 0) {
-      confirmButton.disabled = false;
-    } else {
-      confirmButton.disabled = true;
+  async function confirmBooking() {
+    const file = document.getElementById('paymentScreenshot').files[0];
+    const isPaid = document.getElementById('paymentCheckbox').checked;
+
+    if (!isPaid) {
+      alert('Please confirm that you have paid.');
+      return;
     }
-  }
-
-  confirmCheckbox.addEventListener('change', validateForm);
-  screenshotInput.addEventListener('change', validateForm);
-
-  confirmButton.addEventListener('click', function() {
-    const file = screenshotInput.files[0];
     if (!file) {
       alert('Please upload the payment screenshot.');
       return;
     }
 
-    // Create a unique file path in storage
-    const storageRef = storage.ref('payment_screenshots/' + Date.now() + '_' + file.name);
+    const storageRef = storage.ref('paymentScreenshots/' + Date.now() + '-' + file.name);
+    const uploadTask = await storageRef.put(file);
+    const screenshotURL = await uploadTask.ref.getDownloadURL();
 
-    // Upload file
-    const uploadTask = storageRef.put(file);
+    // Final booking data to upload
+    const finalBooking = {
+      ...bookingData,
+      paymentScreenshotURL: screenshotURL,
+      paymentStatus: "Pending"
+    };
 
-    uploadTask.on('state_changed',
-      (snapshot) => {
-        // Optional: you can show upload progress here
-      },
-      (error) => {
-        console.error('Upload failed:', error);
-        alert('Upload failed. Try again.');
-      },
-      () => {
-        // Upload completed
-        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-          // Save booking details + payment screenshot link to Database
-          const bookingData = {
-            ...booking,
-            paymentScreenshotURL: downloadURL,
-            paymentStatus: "Pending Verification",
-            bookingTime: new Date().toISOString()
-          };
-          
-          const newBookingRef = database.ref('bookings').push();
-          newBookingRef.set(bookingData, (error) => {
-            if (error) {
-              alert('Booking failed. Please try again.');
-            } else {
-              alert('Booking Confirmed! We will verify your payment.');
-              localStorage.removeItem('currentBooking');
-              window.location.href = 'success.html'; // Redirect
-            }
-          });
-        });
-      }
-    );
-  });
+    const newBookingRef = database.ref('bookings').push();
+    await newBookingRef.set(finalBooking);
+
+    localStorage.removeItem('pendingBooking'); // Clean up
+
+    alert('Booking Confirmed! We will verify your payment.');
+    window.location.href = "success.html";
+  }
 </script>
 
 </body>
