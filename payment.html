@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payment - Waveride</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+    }
+    img {
+      display: block;
+      margin: 20px auto;
+      width: 250px;
+      height: auto;
+    }
+    .amount, .details, .upload, .confirm {
+      margin: 20px 0;
+    }
+    .upload input, .confirm input {
+      display: block;
+      margin-top: 10px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2 style="text-align:center;">Complete Your Payment</h2>
+
+  <!-- QR Code -->
+  <div style="text-align: center;">
+    <img src="https://firebasestorage.googleapis.com/v0/b/waveride-bike-rental-service.firebasestorage.app/o/g%20biz%20image.jpg?alt=media&token=05eff2e3-aa04-4fa0-834d-37a9569b533e" alt="GPay QR Code">
+    <p><strong>Scan and Pay using GPay</strong></p>
+  </div>
+
+  <!-- Amount Payable -->
+  <div class="amount" id="amountPayable">
+    <p><strong>Amount to Pay:</strong> ₹Loading...</p>
+  </div>
+
+  <!-- Booking Details -->
+  <div class="details" id="bookingDetails">
+    <h3>Booking Details</h3>
+    <p><strong>Vehicle:</strong> Loading...</p>
+    <p><strong>Booking Date:</strong> Loading...</p>
+    <p><strong>Duration:</strong> Loading...</p>
+  </div>
+
+  <!-- Upload Screenshot -->
+  <div class="upload">
+    <label><strong>Upload Payment Screenshot:</strong></label>
+    <input type="file" id="paymentScreenshot" accept="image/*">
+  </div>
+
+  <!-- Confirm Checkbox -->
+  <div class="confirm">
+    <label>
+      <input type="checkbox" id="confirmPayment">
+      I have completed the payment
+    </label>
+  </div>
+
+  <!-- Confirm Booking Button -->
+  <button id="confirmButton" disabled>Confirm Booking</button>
+</div>
+
+<script>
+  // Load Booking Details from localStorage
+  const booking = JSON.parse(localStorage.getItem('currentBooking'));
+
+  if (booking) {
+    document.getElementById('amountPayable').innerHTML = `
+      <p><strong>Amount to Pay:</strong> ₹${booking.amount}</p>
+    `;
+    document.getElementById('bookingDetails').innerHTML = `
+      <h3>Booking Details</h3>
+      <p><strong>Vehicle:</strong> ${booking.vehicle}</p>
+      <p><strong>Booking Date:</strong> ${booking.bookingDate}</p>
+      <p><strong>Duration:</strong> ${booking.duration}</p>
+    `;
+  } else {
+    alert('Booking details not found. Please book again.');
+    window.location.href = 'booking.html';
+  }
+
+  // Enable Confirm Button only if payment is confirmed and screenshot is uploaded
+  const confirmCheckbox = document.getElementById('confirmPayment');
+  const screenshotInput = document.getElementById('paymentScreenshot');
+  const confirmButton = document.getElementById('confirmButton');
+
+  function validateForm() {
+    if (confirmCheckbox.checked && screenshotInput.files.length > 0) {
+      confirmButton.disabled = false;
+    } else {
+      confirmButton.disabled = true;
+    }
+  }
+
+  confirmCheckbox.addEventListener('change', validateForm);
+  screenshotInput.addEventListener('change', validateForm);
+
+  confirmButton.addEventListener('click', function() {
+    alert('Booking Confirmed! We will verify your payment and process your booking.');
+    // Here you can add code to upload the screenshot to Firebase Storage if needed
+    // After confirmation, clear localStorage and maybe redirect to a success page
+    localStorage.removeItem('currentBooking');
+    window.location.href = 'success.html'; // Or any other page
+  });
+</script>
+
+</body>
+</html>
