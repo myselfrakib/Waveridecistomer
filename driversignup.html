@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Driver Signup - WaveTravel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #0072ff;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #0072ff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005bb5;
+        }
+        .link {
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Driver Signup</h2>
+    <input type="text" id="driverName" placeholder="Full Name" required>
+    <input type="text" id="driverPhone" placeholder="Mobile Number" required>
+    <input type="text" id="driverAddress" placeholder="Residential Address" required>
+    <button onclick="signupDriver()">Sign Up</button>
+    <div class="link">
+        <a href="driverlogin.html">Already Registered? Login Here</a>
+    </div>
+</div>
+
+<script type="module">
+    // Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAuth, signInWithPhoneNumber, RecaptchaVerifier } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDsn16p7w8b-x8pEA_WTO5F2oUk4MHwcUc",
+        authDomain: "wavetravel-3c4c4.firebaseapp.com",
+        databaseURL: "https://wavetravel-3c4c4-default-rtdb.firebaseio.com",
+        projectId: "wavetravel-3c4c4",
+        storageBucket: "wavetravel-3c4c4.appspot.com",
+        messagingSenderId: "298226098137",
+        appId: "1:298226098137:web:720953b80e3e61c8bc43c8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+
+    function signupDriver() {
+        const name = document.getElementById('driverName').value.trim();
+        const phone = document.getElementById('driverPhone').value.trim();
+        const address = document.getElementById('driverAddress').value.trim();
+
+        if (name === "" || phone === "" || address === "") {
+            alert("All fields are mandatory!");
+            return;
+        }
+
+        const driverRef = ref(db, "drivers/" + phone);
+
+        set(driverRef, {
+            name: name,
+            phone: phone,
+            address: address,
+            createdAt: new Date().toISOString()
+        }).then(() => {
+            alert("Driver registered successfully. Now login.");
+            window.location.href = "driverlogin.html";
+        }).catch((error) => {
+            console.error(error);
+            alert("Error signing up. Try again.");
+        });
+    }
+</script>
+
+</body>
+</html>
